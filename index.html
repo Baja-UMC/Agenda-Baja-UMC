@@ -2,1789 +2,970 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#17365d">
-  <meta name="description" content="Agenda acadêmica compartilhada da turma, com provas, trabalhos, apresentações e avisos.">
-  <title>Agenda da Turma</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#142b23">
+  <meta name="description" content="Planejamento compartilhado do Baja UMC, de agosto de 2026 a dezembro de 2028.">
+  <title>Planejamento Baja UMC</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      color-scheme: light;
-      --navy: #17365d;
-      --navy-2: #214d78;
-      --blue: #2f75b5;
-      --blue-soft: #e9f2fb;
-      --ink: #17243a;
-      --muted: #64748b;
-      --line: #dbe3ec;
-      --paper: #ffffff;
-      --canvas: #f3f6fa;
-      --weekend: #f7f9fc;
-      --focus: #0b6bcb;
-      --shadow: 0 20px 55px rgba(23, 54, 93, 0.11);
-      --radius: 18px;
-      --prova-bg: #fde8e7;
-      --prova-ink: #9c1c16;
-      --trabalho-bg: #fff1cc;
-      --trabalho-ink: #765000;
-      --apresentacao-bg: #f0e6ff;
-      --apresentacao-ink: #633099;
-      --sem-aula-bg: #e2e8f0;
-      --sem-aula-ink: #334155;
-      --aviso-bg: #ddf5e8;
-      --aviso-ink: #17633a;
+      --ink: #17241f;
+      --muted: #66736e;
+      --line: #dce4df;
+      --paper: #f7f8f5;
+      --card: #ffffff;
+      --forest: #143b2d;
+      --forest-2: #20533f;
+      --lime: #c8de45;
+      --sand: #eee7d3;
+      --danger: #b42318;
+      --shadow: 0 18px 45px rgba(18, 41, 32, .12);
+      --radius: 22px;
     }
 
     * { box-sizing: border-box; }
-
     html { scroll-behavior: smooth; }
-
     body {
       margin: 0;
-      min-width: 320px;
-      background:
-        linear-gradient(rgba(47, 117, 181, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(47, 117, 181, 0.035) 1px, transparent 1px),
-        var(--canvas);
-      background-size: 28px 28px;
       color: var(--ink);
+      background:
+        radial-gradient(circle at 3% 3%, rgba(200, 222, 69, .17), transparent 23rem),
+        linear-gradient(180deg, #f5f7f1 0, var(--paper) 28rem);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      line-height: 1.45;
+      min-height: 100vh;
     }
+    button, input, select, textarea { font: inherit; }
+    button, select { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+    a { color: var(--forest-2); }
+    .hidden { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
-    button, select, input, textarea { font: inherit; }
-
-    button { color: inherit; }
-
-    button:focus-visible,
-    select:focus-visible,
-    input:focus-visible,
-    textarea:focus-visible,
-    [tabindex]:focus-visible {
-      outline: 3px solid rgba(11, 107, 203, 0.35);
-      outline-offset: 2px;
-    }
-
-    .skip-link {
-      position: fixed;
-      left: 16px;
-      top: -60px;
-      z-index: 100;
-      border-radius: 10px;
-      background: var(--paper);
-      color: var(--navy);
-      padding: 10px 14px;
+    .shell { width: min(1460px, 100%); margin: 0 auto; padding: 20px clamp(14px, 3vw, 42px) 56px; }
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 18px;
+      min-height: 92px;
+      color: white;
+      background: var(--forest);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 28px;
+      padding: 16px 18px;
       box-shadow: var(--shadow);
-      font-weight: 800;
-      transition: top 160ms ease;
-    }
-
-    .skip-link:focus { top: 16px; }
-
-    .app-shell {
-      width: min(1480px, calc(100% - 32px));
-      margin: 24px auto 40px;
-    }
-
-    .site-header {
       position: relative;
       overflow: hidden;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 24px;
-      align-items: center;
-      min-height: 142px;
-      padding: 28px 32px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: var(--radius);
-      background: var(--navy);
-      color: #fff;
-      box-shadow: var(--shadow);
     }
-
-    .site-header::after {
+    .topbar::after {
       content: "";
       position: absolute;
-      right: -70px;
-      top: -125px;
       width: 310px;
       height: 310px;
-      border: 64px solid rgba(255, 255, 255, 0.055);
+      right: 8%;
+      top: -252px;
+      border: 35px solid rgba(200, 222, 69, .22);
       border-radius: 50%;
       pointer-events: none;
     }
-
-    .brand {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      gap: 17px;
-      align-items: center;
-    }
-
-    .brand-mark {
-      display: grid;
+    .brand { display: flex; align-items: center; min-width: 0; gap: 15px; position: relative; z-index: 1; }
+    .logo-slot {
+      width: 70px;
+      height: 62px;
       flex: 0 0 auto;
-      width: 58px;
-      height: 58px;
-      place-items: center;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: 15px;
-      background: rgba(255, 255, 255, 0.11);
-    }
-
-    .brand-mark svg { width: 29px; height: 29px; }
-
-    .eyebrow {
-      margin: 0 0 2px;
-      color: #bdd8f0;
-      font-size: 0.76rem;
-      font-weight: 850;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(1.8rem, 3vw, 2.8rem);
-      line-height: 1.05;
-      letter-spacing: -0.035em;
-    }
-
-    .header-subtitle {
-      margin: 7px 0 0;
-      color: #d7e7f6;
-      font-size: 0.98rem;
-    }
-
-    .semester-badge {
-      position: relative;
-      z-index: 1;
-      align-self: start;
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 9px 14px;
-      color: #fff;
-      font-size: 0.82rem;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-    .status-strip {
       display: grid;
-      grid-template-columns: minmax(220px, 0.8fr) minmax(300px, 1.5fr) minmax(170px, 0.55fr);
-      gap: 12px;
-      margin: 16px 0;
-    }
-
-    .status-card {
-      min-width: 0;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.92);
-      padding: 14px 16px;
-      box-shadow: 0 8px 22px rgba(23, 54, 93, 0.055);
-    }
-
-    .status-label {
-      display: block;
-      margin-bottom: 4px;
-      color: var(--muted);
-      font-size: 0.7rem;
-      font-weight: 850;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .status-value {
-      display: block;
+      place-items: center;
+      background: white;
+      border-radius: 15px;
       overflow: hidden;
-      color: var(--ink);
-      font-size: 0.94rem;
-      font-weight: 800;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      color: var(--forest);
+      text-align: center;
+      font-size: 9px;
+      line-height: 1.2;
+      font-weight: 900;
+      letter-spacing: .08em;
     }
+    .logo-slot img { display: none; width: 100%; height: 100%; object-fit: contain; padding: 7px; }
+    .logo-slot.has-logo img { display: block; }
+    .logo-slot.has-logo span { display: none; }
+    .eyebrow { margin: 0 0 2px; color: var(--lime); text-transform: uppercase; letter-spacing: .16em; font-size: 11px; font-weight: 850; }
+    h1 { margin: 0; font-size: clamp(20px, 3vw, 33px); line-height: 1.05; letter-spacing: -.035em; }
+    .subtitle { margin: 5px 0 0; color: #c8d5cf; font-size: 13px; }
+    .top-actions { display: flex; align-items: center; gap: 9px; position: relative; z-index: 1; }
+
+    .btn {
+      min-height: 42px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      padding: 9px 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 780;
+      text-decoration: none;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { color: var(--forest); background: var(--lime); }
+    .btn-secondary { color: white; background: rgba(255, 255, 255, .09); border-color: rgba(255, 255, 255, .18); }
+    .btn-light { color: var(--forest); background: white; border-color: var(--line); }
+    .btn-danger { color: var(--danger); background: #fff; border-color: #f1cbc7; }
+    .btn-small { min-height: 36px; padding: 7px 11px; border-radius: 10px; font-size: 13px; }
+    .icon-btn { width: 42px; padding: 0; font-size: 20px; }
+
+    .config-warning {
+      margin: 18px 0 0;
+      padding: 15px 17px;
+      border: 1px solid #eadf96;
+      border-radius: 15px;
+      color: #634d00;
+      background: #fff9d8;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr;
+      gap: 14px;
+      margin: 18px 0;
+    }
+    .summary-card {
+      min-width: 0;
+      background: rgba(255, 255, 255, .9);
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      padding: 15px 17px;
+      box-shadow: 0 9px 22px rgba(24, 52, 41, .05);
+    }
+    .summary-label { margin: 0 0 7px; color: var(--muted); font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; }
+    .summary-value { margin: 0; font-size: 16px; font-weight: 830; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .summary-note { margin: 4px 0 0; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .workspace {
-      overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--paper);
-      box-shadow: var(--shadow);
-    }
-
-    .toolbar {
       display: grid;
-      grid-template-columns: minmax(330px, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) 320px;
       gap: 18px;
-      align-items: end;
-      padding: 20px 22px 18px;
-      border-bottom: 1px solid var(--line);
-      background: #fbfdff;
-    }
-
-    .toolbar-group { min-width: 0; }
-
-    .control-label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--muted);
-      font-size: 0.7rem;
-      font-weight: 850;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .filter-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .filter-chip,
-    .view-button,
-    .nav-button,
-    .today-button {
-      border: 1px solid var(--line);
-      background: var(--paper);
-      cursor: pointer;
-      transition: border-color 150ms ease, background 150ms ease, color 150ms ease, transform 150ms ease;
-    }
-
-    .filter-chip:hover,
-    .view-button:hover,
-    .nav-button:hover:not(:disabled),
-    .today-button:hover { border-color: #9db6ce; transform: translateY(-1px); }
-
-    .filter-chip {
-      display: inline-flex;
-      gap: 7px;
-      align-items: center;
-      min-height: 34px;
-      border-radius: 999px;
-      padding: 6px 11px;
-      color: #46566d;
-      font-size: 0.78rem;
-      font-weight: 750;
-    }
-
-    .filter-chip[aria-pressed="true"] {
-      border-color: var(--navy);
-      background: var(--navy);
-      color: #fff;
-    }
-
-    .filter-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--chip-color, var(--blue));
-      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
-    }
-
-    .toolbar-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      justify-content: flex-end;
-    }
-
-    .view-switch {
-      display: inline-flex;
-      border: 1px solid var(--line);
-      border-radius: 11px;
-      background: var(--paper);
-      padding: 3px;
-    }
-
-    .view-button {
-      border: 0;
-      border-radius: 8px;
-      padding: 7px 11px;
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 800;
-    }
-
-    .view-button[aria-pressed="true"] { background: var(--blue-soft); color: var(--navy); }
-
-    .auth-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      justify-content: flex-end;
-    }
-
-    .action-button {
-      min-height: 38px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: var(--paper);
-      padding: 8px 12px;
-      color: var(--navy);
-      cursor: pointer;
-      font-size: 0.78rem;
-      font-weight: 850;
-    }
-
-    .action-button:hover { border-color: #9db6ce; background: var(--blue-soft); }
-    .action-button.primary { border-color: var(--navy); background: var(--navy); color: #fff; }
-    .action-button.danger { border-color: #e7b1ae; background: #fff5f4; color: #9c1c16; }
-    .action-button:disabled { cursor: wait; opacity: 0.6; }
-
-    .user-status {
-      max-width: 230px;
-      overflow: hidden;
-      color: var(--muted);
-      font-size: 0.72rem;
-      font-weight: 750;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .notice {
-      margin: 0 0 12px;
-      border: 1px solid #b8d7f1;
-      border-radius: 12px;
-      background: #eff7ff;
-      padding: 10px 14px;
-      color: var(--navy);
-      font-size: 0.82rem;
-      font-weight: 750;
-    }
-
-    .notice.is-error { border-color: #edb8b5; background: #fff1f0; color: #8d1c17; }
-    .notice.is-success { border-color: #abd9bf; background: #edf9f2; color: #17633a; }
-
-    .calendar-heading {
-      display: grid;
-      grid-template-columns: auto minmax(180px, 1fr) auto;
-      gap: 15px;
-      align-items: center;
-      padding: 18px 22px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .month-title-wrap { text-align: center; }
-
-    .month-title {
-      margin: 0;
-      color: var(--navy);
-      font-size: clamp(1.35rem, 2vw, 1.8rem);
-      line-height: 1.1;
-      letter-spacing: -0.025em;
-      text-transform: capitalize;
-    }
-
-    .month-count {
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
-
-    .nav-button {
-      display: inline-grid;
-      width: 40px;
-      height: 40px;
-      place-items: center;
-      border-radius: 11px;
-      color: var(--navy);
-      font-size: 1.2rem;
-      font-weight: 800;
-    }
-
-    .nav-button:disabled { cursor: not-allowed; opacity: 0.34; }
-
-    .calendar-scroll { overflow-x: auto; }
-
-    .calendar-panel { min-width: 840px; }
-
-    .weekdays,
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-    }
-
-    .weekday {
-      border-right: 1px solid var(--line);
-      border-bottom: 1px solid var(--line);
-      background: var(--blue-soft);
-      padding: 10px 6px;
-      color: var(--navy);
-      font-size: 0.69rem;
-      font-weight: 900;
-      letter-spacing: 0.09em;
-      text-align: center;
-      text-transform: uppercase;
-    }
-
-    .weekday:nth-child(n+6) { background: #edf1f6; color: #536274; }
-    .weekday:last-child { border-right: 0; }
-    .weekday-short { display: none; }
-
-    .day-cell {
-      position: relative;
-      min-height: 132px;
-      border-right: 1px solid var(--line);
-      border-bottom: 1px solid var(--line);
-      background: var(--paper);
-      padding: 8px;
-    }
-
-    .day-cell:nth-child(7n) { border-right: 0; }
-    .day-cell:nth-child(7n+6),
-    .day-cell:nth-child(7n+7) { background: var(--weekend); }
-    .day-cell.is-outside { background: #f3f5f8; color: #9aa7b7; }
-    .day-cell.is-today { box-shadow: inset 0 0 0 2px var(--blue); z-index: 1; }
-
-    .day-number {
-      display: grid;
-      width: 27px;
-      height: 27px;
-      place-items: center;
-      margin-bottom: 6px;
-      border-radius: 9px;
-      color: #3c4b60;
-      font-size: 0.77rem;
-      font-weight: 850;
-    }
-
-    .is-outside .day-number { color: #9aa7b7; }
-    .is-today .day-number { background: var(--blue); color: #fff; }
-
-    .day-events { display: grid; gap: 5px; }
-
-    .event-pill {
-      width: 100%;
-      overflow: hidden;
-      border: 0;
-      border-left: 3px solid currentColor;
-      border-radius: 7px;
-      background: var(--event-bg);
-      padding: 6px 7px;
-      color: var(--event-ink);
-      cursor: pointer;
-      font-size: 0.7rem;
-      font-weight: 800;
-      line-height: 1.25;
-      text-align: left;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .event-pill:hover { filter: brightness(0.97); }
-
-    .event-label-short { display: none; }
-
-    .more-events {
-      padding: 2px 4px;
-      color: var(--muted);
-      font-size: 0.68rem;
-      font-weight: 800;
-    }
-
-    .type-prova { --event-bg: var(--prova-bg); --event-ink: var(--prova-ink); }
-    .type-trabalho { --event-bg: var(--trabalho-bg); --event-ink: var(--trabalho-ink); }
-    .type-apresentacao { --event-bg: var(--apresentacao-bg); --event-ink: var(--apresentacao-ink); }
-    .type-sem-aula { --event-bg: var(--sem-aula-bg); --event-ink: var(--sem-aula-ink); }
-    .type-aviso { --event-bg: var(--aviso-bg); --event-ink: var(--aviso-ink); }
-
-    .agenda-panel { padding: 8px 22px 24px; }
-
-    .agenda-day {
-      display: grid;
-      grid-template-columns: 78px minmax(0, 1fr);
-      gap: 16px;
-      padding: 16px 0;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .agenda-date {
-      color: var(--navy);
-      font-size: 0.76rem;
-      font-weight: 900;
-      letter-spacing: 0.04em;
-      text-align: center;
-      text-transform: uppercase;
-    }
-
-    .agenda-date strong {
-      display: block;
-      font-size: 1.65rem;
-      line-height: 1;
-      letter-spacing: -0.04em;
-    }
-
-    .agenda-items { display: grid; gap: 8px; }
-
-    .agenda-item {
-      width: 100%;
-      border: 1px solid color-mix(in srgb, var(--event-ink) 20%, transparent);
-      border-left: 4px solid var(--event-ink);
-      border-radius: 10px;
-      background: var(--event-bg);
-      padding: 11px 13px;
-      color: var(--event-ink);
-      cursor: pointer;
-      text-align: left;
-    }
-
-    .agenda-item strong { display: block; font-size: 0.91rem; }
-    .agenda-item span { display: block; margin-top: 3px; font-size: 0.75rem; opacity: 0.8; }
-
-    .empty-state {
-      display: grid;
-      min-height: 250px;
-      place-items: center;
-      padding: 40px 20px;
-      color: var(--muted);
-      text-align: center;
-    }
-
-    .empty-state strong { display: block; margin-bottom: 4px; color: var(--ink); font-size: 1rem; }
-
-    [hidden] { display: none !important; }
-
-    .site-footer {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      justify-content: space-between;
-      padding: 17px 22px;
-      border-top: 1px solid var(--line);
-      background: #fbfdff;
-      color: var(--muted);
-      font-size: 0.76rem;
-    }
-
-    .footer-legend { display: flex; flex-wrap: wrap; gap: 9px 14px; }
-
-    .legend-item { display: inline-flex; gap: 6px; align-items: center; font-weight: 750; }
-    .legend-dot { width: 9px; height: 9px; border-radius: 3px; background: var(--event-bg); border: 1px solid var(--event-ink); }
-
-    dialog {
-      width: min(520px, calc(100% - 30px));
-      max-height: calc(100dvh - 24px);
-      overflow-y: auto;
-      border: 0;
-      border-radius: 18px;
-      padding: 0;
-      color: var(--ink);
-      box-shadow: 0 30px 90px rgba(15, 32, 55, 0.3);
-    }
-
-    dialog::backdrop { background: rgba(10, 25, 45, 0.58); backdrop-filter: blur(3px); }
-
-    .dialog-header {
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-      justify-content: space-between;
-      padding: 22px 22px 18px;
-      border-bottom: 1px solid var(--line);
-      background: #fbfdff;
-    }
-
-    .dialog-type {
-      display: inline-flex;
-      border-radius: 999px;
-      background: var(--event-bg);
-      padding: 5px 9px;
-      color: var(--event-ink);
-      font-size: 0.7rem;
-      font-weight: 900;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-    }
-
-    .dialog-title { margin: 9px 0 0; color: var(--navy); font-size: 1.35rem; line-height: 1.18; }
-
-    .close-button {
-      display: grid;
-      flex: 0 0 auto;
-      width: 36px;
-      height: 36px;
-      place-items: center;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #fff;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 1.2rem;
-    }
-
-    .dialog-body { display: grid; gap: 14px; padding: 20px 22px 24px; }
-
-    .dialog-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: flex-end;
-      padding: 0 22px 22px;
-    }
-
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .form-field { display: grid; gap: 6px; }
-    .form-field.full { grid-column: 1 / -1; }
-    .form-field label { color: var(--muted); font-size: 0.73rem; font-weight: 850; text-transform: uppercase; }
-    .form-field input,
-    .form-field select,
-    .form-field textarea {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #fff;
-      padding: 10px 11px;
-      color: var(--ink);
-    }
-    .form-field textarea { min-height: 170px; line-height: 1.5; resize: vertical; }
-    .form-help { margin: 0; color: var(--muted); font-size: 0.76rem; }
-
-    .file-input { cursor: pointer; }
-    .current-attachment {
-      display: grid;
-      gap: 8px;
-      border: 1px solid #b8d7f1;
-      border-radius: 10px;
-      background: #eff7ff;
-      padding: 9px 11px;
-      color: var(--navy);
-      font-size: 0.78rem;
-      font-weight: 800;
-    }
-    .current-attachment-title { color: var(--muted); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; }
-    .attachment-edit-list { display: grid; gap: 6px; }
-    .attachment-edit-item {
-      display: flex;
-      min-width: 0;
-      gap: 10px;
-      align-items: center;
-      justify-content: space-between;
-      border-top: 1px solid rgba(47, 117, 181, 0.16);
-      padding-top: 6px;
-    }
-    .attachment-edit-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .form-field .remove-attachment {
-      display: inline-flex;
-      gap: 6px;
-      align-items: center;
-      color: #9c1c16;
-      cursor: pointer;
-      font-size: 0.72rem;
-      text-transform: none;
-    }
-    .remove-attachment input { width: auto; margin: 0; }
-
-    .detail-row {
-      display: grid;
-      grid-template-columns: 110px minmax(0, 1fr);
-      gap: 12px;
       align-items: start;
     }
-
-    .detail-label { color: var(--muted); font-size: 0.74rem; font-weight: 850; text-transform: uppercase; }
-    .detail-value {
-      min-width: 0;
-      color: var(--ink);
-      font-size: 0.9rem;
-      font-weight: 650;
-      overflow-wrap: anywhere;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .detail-link {
-      border-bottom: 1px solid currentColor;
-      color: var(--focus);
-      font-weight: 850;
-      text-decoration: none;
-    }
-
-    .detail-link:hover { border-bottom-width: 2px; }
-
-    .attachment-button {
-      display: inline-flex;
-      max-width: 100%;
-      gap: 8px;
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 12px 34px rgba(19, 47, 36, .07); }
+    .calendar-panel { overflow: hidden; }
+    .calendar-toolbar {
+      display: grid;
+      grid-template-columns: auto minmax(160px, 1fr) auto;
       align-items: center;
-      border: 1px solid #b8d7f1;
-      border-radius: 10px;
-      background: #eff7ff;
-      padding: 9px 12px;
-      color: var(--navy);
-      font-weight: 850;
-      text-decoration: none;
+      gap: 12px;
+      padding: 17px;
+      border-bottom: 1px solid var(--line);
     }
-    .attachment-button:hover { border-color: var(--blue); background: var(--blue-soft); }
-    .attachment-button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .attachment-list { display: grid; gap: 7px; }
-    .attachment-meta { color: var(--muted); font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
-
-    @media (max-width: 900px) {
-      .app-shell { width: min(100% - 20px, 1480px); margin-top: 10px; }
-      .site-header { min-height: auto; padding: 22px; }
-      .status-strip { grid-template-columns: 1fr 1fr; }
-      .status-card:last-child { grid-column: 1 / -1; }
-      .toolbar { grid-template-columns: 1fr; align-items: start; }
-      .toolbar-actions { justify-content: space-between; }
-      .auth-actions { justify-content: flex-start; }
+    .month-nav { display: flex; align-items: center; gap: 8px; }
+    .month-title { margin: 0; text-align: center; text-transform: capitalize; font-size: clamp(19px, 3vw, 27px); letter-spacing: -.025em; }
+    .view-switch { display: flex; padding: 3px; border-radius: 11px; background: #edf1ee; }
+    .view-switch button { min-height: 34px; border: 0; border-radius: 8px; padding: 5px 10px; color: var(--muted); background: transparent; font-weight: 750; }
+    .view-switch button.active { color: var(--forest); background: white; box-shadow: 0 2px 8px rgba(0, 0, 0, .08); }
+    .weekdays, .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .weekdays { background: #f4f6f3; border-bottom: 1px solid var(--line); }
+    .weekday { padding: 10px 5px; color: var(--muted); text-align: center; text-transform: uppercase; font-size: 10px; font-weight: 850; letter-spacing: .08em; }
+    .day {
+      min-width: 0;
+      min-height: 116px;
+      padding: 8px;
+      background: #fff;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
     }
-
-    @media (max-width: 700px) {
-      .app-shell { width: calc(100% - 12px); margin: 6px auto 24px; }
-      .site-header { padding: 17px; border-radius: 14px; }
-      .site-header::after { width: 220px; height: 220px; right: -80px; top: -115px; border-width: 42px; }
-      .brand { gap: 12px; }
-      .brand-mark { width: 44px; height: 44px; border-radius: 11px; }
-      .brand-mark svg { width: 23px; height: 23px; }
-      .eyebrow { font-size: 0.62rem; letter-spacing: 0.1em; }
-      h1 { font-size: 1.62rem; }
-      .header-subtitle { margin-top: 4px; font-size: 0.8rem; }
-      .semester-badge { padding: 7px 10px; font-size: 0.7rem; }
-
-      .status-strip { gap: 7px; margin: 9px 0; }
-      .status-card { border-radius: 11px; padding: 9px 11px; }
-      .status-label { margin-bottom: 2px; font-size: 0.59rem; }
-      .status-value { font-size: 0.78rem; }
-
-      .workspace { border-radius: 14px; }
-      .toolbar { gap: 11px; padding: 13px 12px; }
-      .control-label { margin-bottom: 6px; font-size: 0.61rem; }
-      .filter-row {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        margin-right: -12px;
-        padding: 1px 12px 5px 1px;
-        scrollbar-width: none;
-      }
-      .filter-row::-webkit-scrollbar { display: none; }
-      .filter-chip { flex: 0 0 auto; min-height: 30px; padding: 5px 9px; font-size: 0.7rem; }
-      .view-button { padding: 6px 9px; font-size: 0.7rem; }
-
-      .calendar-heading { gap: 9px; padding: 12px; }
-      .month-title { font-size: 1.2rem; }
-      .month-count { margin-top: 2px; font-size: 0.66rem; }
-      .nav-button { width: 34px; height: 34px; border-radius: 9px; }
-
-      .calendar-scroll { overflow-x: visible; }
-      .calendar-panel { min-width: 0; width: 100%; }
-      .weekday { padding: 7px 1px; font-size: 0.55rem; letter-spacing: 0; }
-      .weekday-full { display: none; }
-      .weekday-short { display: inline; }
-
-      .day-cell { min-height: 72px; padding: 3px; }
-      .day-number {
-        width: 20px;
-        height: 20px;
-        margin-bottom: 2px;
-        border-radius: 6px;
-        font-size: 0.62rem;
-      }
-      .day-events { gap: 2px; }
-      .event-pill {
-        min-height: 15px;
-        border-left-width: 2px;
-        border-radius: 4px;
-        padding: 2px 3px;
-        font-size: 0.52rem;
-        line-height: 1;
-        text-align: center;
-      }
-      .event-label-full { display: none; }
-      .event-label-short { display: inline; }
-      .more-events { padding: 0 2px; font-size: 0.5rem; }
-
-      .site-footer { padding: 12px; font-size: 0.67rem; }
-      .footer-legend { gap: 6px 10px; }
-      .legend-dot { width: 8px; height: 8px; }
+    .day:nth-child(7n) { border-right: 0; }
+    .day.outside { background: #fafbf9; color: #a0aaa6; }
+    .day.today { background: linear-gradient(145deg, #fbfdea, #fff); box-shadow: inset 0 0 0 2px rgba(200, 222, 69, .7); }
+    .day-head { display: flex; align-items: center; justify-content: space-between; min-height: 24px; margin-bottom: 5px; }
+    .day-number { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; font-size: 12px; font-weight: 830; }
+    .today .day-number { color: white; background: var(--forest); }
+    .day-add { border: 0; color: var(--forest); background: transparent; font-weight: 900; opacity: 0; padding: 2px 4px; }
+    .day:hover .day-add, .day-add:focus { opacity: 1; }
+    .event-chip {
+      width: 100%;
+      border: 0;
+      border-left: 4px solid var(--event-color, var(--forest));
+      border-radius: 7px;
+      padding: 5px 6px;
+      margin: 0 0 4px;
+      color: var(--ink);
+      background: color-mix(in srgb, var(--event-color, var(--forest)) 11%, white);
+      text-align: left;
+      font-size: 10px;
+      font-weight: 750;
+      line-height: 1.22;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+    .more-events { color: var(--muted); font-size: 10px; font-weight: 800; padding-left: 7px; }
 
-    @media (max-width: 620px) {
-      .site-header { grid-template-columns: 1fr; gap: 14px; }
-      .semester-badge { justify-self: start; }
-      .brand { align-items: flex-start; }
-      .brand-mark { width: 48px; height: 48px; border-radius: 12px; }
-      .header-subtitle { max-width: 30ch; }
-      .status-strip { grid-template-columns: 1fr; }
-      .status-card:last-child { grid-column: auto; }
-      .toolbar { padding: 17px 15px; }
-      .toolbar-actions { align-items: stretch; }
-      .toolbar-actions { flex-direction: column; }
-      .view-switch { flex: 1; }
-      .view-button { flex: 1; }
-      .auth-actions { justify-content: stretch; }
-      .auth-actions .action-button { flex: 1; }
-      .user-status { flex: 1 0 100%; max-width: none; }
-      .calendar-heading { padding-inline: 15px; }
-      .agenda-panel { padding-inline: 15px; }
-      .site-footer { align-items: flex-start; flex-direction: column; }
-      .detail-row { grid-template-columns: 1fr; gap: 3px; }
-      .form-grid { grid-template-columns: 1fr; }
-      .form-field.full { grid-column: auto; }
+    .agenda-list { padding: 12px 16px 20px; }
+    .agenda-day { display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .agenda-date { color: var(--muted); font-size: 12px; font-weight: 850; text-transform: uppercase; }
+    .agenda-date strong { display: block; color: var(--forest); font-size: 24px; line-height: 1; }
+    .agenda-event {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 7px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 11px;
+      margin-bottom: 7px;
+      color: var(--ink);
+      background: #f5f7f4;
+      text-align: left;
     }
+    .agenda-event-dot { width: 7px; height: 100%; min-height: 36px; background: var(--event-color); border-radius: 6px; }
+    .agenda-event strong { display: block; margin-bottom: 3px; }
+    .agenda-event small { color: var(--muted); }
 
-    @media print {
-      body { background: #fff; }
-      .app-shell { width: 100%; margin: 0; }
-      .site-header { box-shadow: none; }
-      .toolbar, .status-strip, .site-footer { display: none; }
-      .workspace { box-shadow: none; }
-      .calendar-scroll { overflow: visible; }
-      .calendar-panel { min-width: 0; }
-      .day-cell { min-height: 100px; }
+    .side { display: grid; gap: 14px; }
+    .filter-panel, .legend-panel { padding: 17px; }
+    .panel-title { margin: 0 0 14px; font-size: 16px; }
+    .field { margin-bottom: 13px; }
+    .field:last-child { margin-bottom: 0; }
+    label, .field-label { display: block; margin: 0 0 6px; color: #4f6059; font-size: 11px; font-weight: 850; text-transform: uppercase; letter-spacing: .065em; }
+    input, select, textarea {
+      width: 100%;
+      min-height: 45px;
+      border: 1px solid #d4ddd8;
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: var(--ink);
+      background: white;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #4f816d; box-shadow: 0 0 0 3px rgba(47, 105, 81, .13); }
+    textarea { min-height: 116px; resize: vertical; line-height: 1.5; }
+    .search { padding-left: 36px; }
+    .search-wrap { position: relative; }
+    .search-wrap::before { content: "⌕"; position: absolute; left: 13px; top: 7px; color: var(--muted); font-size: 23px; z-index: 1; }
+    .legend-list { display: grid; gap: 9px; }
+    .legend-item { display: flex; align-items: center; gap: 9px; min-width: 0; font-size: 13px; }
+    .legend-color { width: 11px; height: 11px; flex: 0 0 auto; border-radius: 4px; background: var(--legend-color); }
+    .legend-item span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .legend-item small { margin-left: auto; color: var(--muted); }
+    .empty { padding: 38px 20px; color: var(--muted); text-align: center; }
+
+    .status { position: fixed; left: 50%; bottom: 18px; z-index: 100; transform: translate(-50%, 30px); opacity: 0; pointer-events: none; max-width: min(90vw, 540px); padding: 11px 16px; border-radius: 12px; color: white; background: #26352f; box-shadow: var(--shadow); font-weight: 750; transition: .2s ease; }
+    .status.show { transform: translate(-50%, 0); opacity: 1; }
+    .status.error { background: var(--danger); }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      background: rgba(7, 23, 17, .6);
+      backdrop-filter: blur(5px);
+    }
+    .modal-card { width: min(680px, 100%); max-height: min(91vh, 900px); overflow: auto; background: white; border-radius: 24px; box-shadow: var(--shadow); }
+    .modal-card.large { width: min(830px, 100%); }
+    .modal-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 19px 20px 15px; background: rgba(255, 255, 255, .96); border-bottom: 1px solid var(--line); }
+    .modal-head h2 { margin: 0; font-size: 22px; }
+    .modal-head p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .close { flex: 0 0 auto; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); background: white; font-size: 22px; }
+    .modal-body { padding: 20px; }
+    .modal-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 9px; padding: 15px 20px 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+    .form-grid .full { grid-column: 1 / -1; }
+    .helper { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .badge { display: inline-flex; align-items: center; min-height: 26px; border-radius: 999px; padding: 4px 9px; color: var(--forest); background: #e9f0d2; font-size: 11px; font-weight: 850; text-transform: uppercase; letter-spacing: .05em; }
+
+    .detail-title { margin: 10px 0 4px; font-size: clamp(24px, 4vw, 35px); line-height: 1.1; letter-spacing: -.03em; }
+    .detail-group { margin: 0; color: var(--muted); font-weight: 750; }
+    .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 11px; margin: 20px 0; }
+    .detail-box { padding: 12px; border-radius: 13px; background: #f3f6f3; }
+    .detail-box span { display: block; margin-bottom: 5px; color: var(--muted); font-size: 10px; font-weight: 850; text-transform: uppercase; letter-spacing: .07em; }
+    .detail-box strong { font-size: 13px; }
+    .rich-text { overflow-wrap: anywhere; white-space: normal; line-height: 1.62; }
+    .rich-text a { font-weight: 760; }
+    .attachments { display: grid; gap: 8px; margin-top: 15px; }
+    .attachment { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
+    .attachment-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 750; }
+
+    .pending-files { display: grid; gap: 7px; margin-top: 9px; }
+    .pending-file { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 9px; padding: 9px 10px; background: #f2f5f2; border-radius: 10px; font-size: 13px; }
+    .pending-file span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .remove-file { border: 0; color: var(--danger); background: transparent; font-weight: 850; }
+
+    .group-list { display: grid; gap: 9px; margin: 14px 0; }
+    .group-row { display: grid; grid-template-columns: 13px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 11px 12px; border: 1px solid var(--line); border-radius: 13px; }
+    .group-dot { width: 13px; height: 42px; border-radius: 7px; background: var(--group-color); }
+    .group-row strong, .group-row small { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .group-row small { color: var(--muted); margin-top: 2px; }
+
+    @media (max-width: 980px) {
+      .workspace { grid-template-columns: 1fr; }
+      .side { grid-template-columns: 1fr 1fr; }
+      .day { min-height: 100px; }
+    }
+    @media (max-width: 680px) {
+      .shell { padding: 8px 8px 40px; }
+      .topbar { border-radius: 20px; padding: 13px; grid-template-columns: 1fr; }
+      .logo-slot { width: 56px; height: 54px; border-radius: 12px; }
+      .subtitle { display: none; }
+      .top-actions { justify-content: stretch; }
+      .top-actions .btn { flex: 1; }
+      .summary-grid { grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+      .summary-card { padding: 11px; border-radius: 13px; }
+      .summary-grid .summary-card:first-child { grid-column: 1 / -1; }
+      .summary-value { font-size: 14px; }
+      .workspace { gap: 10px; }
+      .calendar-toolbar { grid-template-columns: 1fr auto; padding: 11px; }
+      .month-nav { grid-column: 1 / -1; justify-content: space-between; }
+      .month-title { order: 2; }
+      .month-nav button:first-child { order: 1; }
+      .month-nav button:last-child { order: 3; }
+      #todayBtn { justify-self: start; }
+      .view-switch { justify-self: end; }
+      .weekdays { display: none; }
+      .calendar-grid { display: block; padding: 7px 10px 12px; }
+      .day { display: none; min-height: auto; padding: 8px 0; border: 0; border-bottom: 1px solid var(--line); }
+      .day.has-events, .day.today { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 6px; background: white; box-shadow: none; }
+      .day.outside { display: none; }
+      .day-head { align-items: flex-start; justify-content: center; margin: 0; }
+      .day-number { width: 36px; height: 36px; font-size: 14px; }
+      .day-add { display: none; }
+      .event-stack { min-width: 0; }
+      .event-chip { padding: 9px 8px; margin-bottom: 5px; font-size: 12px; }
+      .more-events { font-size: 12px; }
+      .side { grid-template-columns: 1fr; }
+      .legend-panel { order: 2; }
+      .form-grid, .detail-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: auto; }
+      .modal { align-items: end; padding: 0; }
+      .modal-card, .modal-card.large { width: 100%; max-height: 94vh; border-radius: 22px 22px 0 0; }
+      .modal-head, .modal-body { padding-left: 16px; padding-right: 16px; }
+      .agenda-day { grid-template-columns: 61px minmax(0, 1fr); }
+      .agenda-event { grid-template-columns: 6px minmax(0, 1fr); }
+      .agenda-event > small { grid-column: 2; }
     }
   </style>
 </head>
 <body>
-  <a class="skip-link" href="#calendario">Ir para o calendário</a>
-
-  <main class="app-shell">
-    <header class="site-header">
+  <main class="shell">
+    <header class="topbar">
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="5" width="18" height="16" rx="2"></rect>
-            <path d="M16 3v4M8 3v4M3 10h18"></path>
-            <path d="m8.5 15 2 2 4.5-5"></path>
-          </svg>
+        <div class="logo-slot" id="logoSlot" aria-label="Espaço para o logo da UMC">
+          <img src="logo-umc.png" alt="Logo UMC" id="umcLogo">
+          <span>LOGO<br>UMC</span>
         </div>
         <div>
-          <p class="eyebrow">Calendário acadêmico compartilhado</p>
-          <h1>Agenda da Turma</h1>
-          <p class="header-subtitle">Provas, trabalhos, apresentações e avisos importantes em um só lugar.</p>
+          <p class="eyebrow">Baja SAE · Universidade de Mogi das Cruzes</p>
+          <h1>Planejamento Baja UMC</h1>
+          <p class="subtitle">Desenvolvimento, fabricação e apresentações · ago/2026 — dez/2028</p>
         </div>
       </div>
-      <span class="semester-badge">2º semestre • 2026</span>
+      <div class="top-actions">
+        <button class="btn btn-secondary hidden" id="groupsBtn" type="button">Grupos</button>
+        <button class="btn btn-primary hidden" id="newEventBtn" type="button">+ Nova atividade</button>
+        <button class="btn btn-secondary" id="loginBtn" type="button">Entrar</button>
+      </div>
     </header>
 
-    <section class="status-strip" aria-label="Resumo da agenda">
-      <div class="status-card">
-        <span class="status-label">Hoje</span>
-        <span class="status-value" id="todayLabel">—</span>
-      </div>
-      <div class="status-card">
-        <span class="status-label">Próximo compromisso</span>
-        <span class="status-value" id="nextEventLabel">—</span>
-      </div>
-      <div class="status-card">
-        <span class="status-label">Período</span>
-        <span class="status-value">Agosto — Dezembro</span>
-      </div>
+    <div class="config-warning hidden" id="configWarning">
+      <strong>Falta conectar este arquivo ao novo Supabase.</strong> No final do <code>index.html</code>, troque os dois textos <code>COLE_AQUI...</code> pela URL e pela chave publicável do projeto Baja.
+    </div>
+
+    <section class="summary-grid" aria-label="Resumo do planejamento">
+      <article class="summary-card">
+        <p class="summary-label">Próxima atividade</p>
+        <p class="summary-value" id="nextEventValue">Nenhuma cadastrada</p>
+        <p class="summary-note" id="nextEventNote">O cronograma está livre.</p>
+      </article>
+      <article class="summary-card">
+        <p class="summary-label">Grupos ativos</p>
+        <p class="summary-value" id="activeGroupsValue">0 grupos</p>
+        <p class="summary-note">Planejamento compartilhado</p>
+      </article>
+      <article class="summary-card">
+        <p class="summary-label">Período</p>
+        <p class="summary-value">Agosto/2026 — Dezembro/2028</p>
+        <p class="summary-note">29 meses de projeto</p>
+      </article>
     </section>
 
-    <div class="notice" id="notice" role="status" hidden></div>
-
-    <section class="workspace" id="calendario" aria-label="Agenda mensal">
-      <div class="toolbar">
-        <div class="toolbar-group">
-          <span class="control-label">Filtrar compromissos</span>
-          <div class="filter-row" id="filterRow" aria-label="Categorias de eventos"></div>
-        </div>
-        <div class="toolbar-actions">
-          <div>
-            <span class="control-label">Visualização</span>
-            <div class="view-switch" aria-label="Escolher visualização">
-              <button class="view-button" type="button" data-view="calendar" aria-pressed="true">Calendário</button>
-              <button class="view-button" type="button" data-view="list" aria-pressed="false">Lista</button>
-            </div>
+    <div class="workspace">
+      <section class="panel calendar-panel" aria-label="Calendário do Baja UMC">
+        <div class="calendar-toolbar">
+          <div class="month-nav">
+            <button class="btn btn-light icon-btn" id="prevMonth" type="button" aria-label="Mês anterior">‹</button>
+            <h2 class="month-title" id="monthTitle"></h2>
+            <button class="btn btn-light icon-btn" id="nextMonth" type="button" aria-label="Próximo mês">›</button>
           </div>
-          <div>
-            <span class="control-label">Edição</span>
-            <div class="auth-actions">
-              <span class="user-status" id="userStatus">Somente leitura</span>
-              <button class="action-button primary" type="button" id="loginButton">Entrar para editar</button>
-              <button class="action-button primary" type="button" id="newEventButton" hidden>+ Novo evento</button>
-              <button class="action-button" type="button" id="logoutButton" hidden>Sair</button>
-            </div>
+          <button class="btn btn-light btn-small" id="todayBtn" type="button">Hoje</button>
+          <div class="view-switch" aria-label="Modo de visualização">
+            <button class="active" type="button" data-view="calendar">Calendário</button>
+            <button type="button" data-view="agenda">Lista</button>
           </div>
         </div>
-      </div>
-
-      <div class="calendar-heading">
-        <button class="nav-button" type="button" id="prevMonth" aria-label="Mês anterior">‹</button>
-        <div class="month-title-wrap" aria-live="polite">
-          <h2 class="month-title" id="monthTitle">—</h2>
-          <p class="month-count" id="monthCount">—</p>
-        </div>
-        <button class="nav-button" type="button" id="nextMonth" aria-label="Próximo mês">›</button>
-      </div>
-
-      <div class="calendar-scroll" id="calendarView">
-        <div class="calendar-panel">
+        <div id="calendarView">
           <div class="weekdays" aria-hidden="true">
-            <div class="weekday"><span class="weekday-full">Segunda</span><span class="weekday-short">Seg</span></div>
-            <div class="weekday"><span class="weekday-full">Terça</span><span class="weekday-short">Ter</span></div>
-            <div class="weekday"><span class="weekday-full">Quarta</span><span class="weekday-short">Qua</span></div>
-            <div class="weekday"><span class="weekday-full">Quinta</span><span class="weekday-short">Qui</span></div>
-            <div class="weekday"><span class="weekday-full">Sexta</span><span class="weekday-short">Sex</span></div>
-            <div class="weekday"><span class="weekday-full">Sábado</span><span class="weekday-short">Sáb</span></div>
-            <div class="weekday"><span class="weekday-full">Domingo</span><span class="weekday-short">Dom</span></div>
+            <div class="weekday">Dom</div><div class="weekday">Seg</div><div class="weekday">Ter</div><div class="weekday">Qua</div><div class="weekday">Qui</div><div class="weekday">Sex</div><div class="weekday">Sáb</div>
           </div>
           <div class="calendar-grid" id="calendarGrid"></div>
         </div>
-      </div>
+        <div class="agenda-list hidden" id="agendaView"></div>
+      </section>
 
-      <div class="agenda-panel" id="listView" hidden></div>
-
-      <footer class="site-footer">
-        <div class="footer-legend" id="footerLegend" aria-label="Legenda de categorias"></div>
-        <span>Leitura pública • edição restrita aos representantes autorizados</span>
-      </footer>
-    </section>
-  </main>
-
-  <dialog id="eventDialog" aria-labelledby="dialogTitle">
-    <div class="dialog-header">
-      <div>
-        <span class="dialog-type" id="dialogType">—</span>
-        <h2 class="dialog-title" id="dialogTitle">—</h2>
-      </div>
-      <button class="close-button" type="button" id="closeDialog" aria-label="Fechar detalhes">×</button>
-    </div>
-    <div class="dialog-body" id="dialogBody"></div>
-    <div class="dialog-actions" id="eventActions" hidden>
-      <button class="action-button" type="button" id="editEventButton">Editar</button>
-      <button class="action-button danger" type="button" id="deleteEventButton">Excluir</button>
-    </div>
-  </dialog>
-
-  <dialog id="loginDialog" aria-labelledby="loginTitle">
-    <div class="dialog-header">
-      <div>
-        <span class="dialog-type type-aviso">Área dos representantes</span>
-        <h2 class="dialog-title" id="loginTitle">Entrar para editar</h2>
-      </div>
-      <button class="close-button" type="button" data-close-dialog="loginDialog" aria-label="Fechar login">×</button>
-    </div>
-    <form id="loginForm">
-      <div class="dialog-body">
-        <p class="form-help">Use uma das contas autorizadas cadastradas no Supabase.</p>
-        <div class="form-field">
-          <label for="loginEmail">E-mail</label>
-          <input id="loginEmail" name="email" type="email" autocomplete="username" required>
-        </div>
-        <div class="form-field">
-          <label for="loginPassword">Senha</label>
-          <input id="loginPassword" name="password" type="password" autocomplete="current-password" minlength="6" required>
-        </div>
-      </div>
-      <div class="dialog-actions">
-        <button class="action-button primary" type="submit" id="loginSubmit">Entrar</button>
-      </div>
-    </form>
-  </dialog>
-
-  <dialog id="editorDialog" aria-labelledby="editorTitle">
-    <div class="dialog-header">
-      <div>
-        <span class="dialog-type type-aviso">Compromisso</span>
-        <h2 class="dialog-title" id="editorTitle">Novo evento</h2>
-      </div>
-      <button class="close-button" type="button" data-close-dialog="editorDialog" aria-label="Fechar formulário">×</button>
-    </div>
-    <form id="eventForm">
-      <div class="dialog-body">
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="eventDate">Data</label>
-            <input id="eventDate" name="data" type="date" required>
+      <aside class="side">
+        <section class="panel filter-panel">
+          <h2 class="panel-title">Encontrar atividades</h2>
+          <div class="field search-wrap">
+            <label class="sr-only" for="searchInput">Buscar</label>
+            <input class="search" id="searchInput" type="search" placeholder="Título, local ou detalhes">
           </div>
-          <div class="form-field">
-            <label for="eventType">Categoria</label>
-            <select id="eventType" name="tipo" required>
-              <option value="prova">Prova</option>
-              <option value="trabalho">Trabalho</option>
-              <option value="apresentacao">Apresentação</option>
-              <option value="sem-aula">Sem aula</option>
-              <option value="aviso">Aviso</option>
+          <div class="field">
+            <label for="groupFilter">Grupo</label>
+            <select id="groupFilter"><option value="">Todos os grupos</option></select>
+          </div>
+          <div class="field">
+            <label for="stageFilter">Etapa</label>
+            <select id="stageFilter">
+              <option value="">Todas as etapas</option>
+              <option value="planejamento">Planejamento</option><option value="projeto">Projeto</option><option value="desenvolvimento">Desenvolvimento</option><option value="fabricacao">Fabricação</option><option value="montagem">Montagem</option><option value="testes">Testes</option><option value="apresentacao">Apresentação</option><option value="competicao">Competição</option><option value="outro">Outro</option>
             </select>
           </div>
-          <div class="form-field full">
-            <label for="eventTitle">Título</label>
-            <input id="eventTitle" name="titulo" type="text" maxlength="120" required>
+          <div class="field">
+            <label for="statusFilter">Andamento</label>
+            <select id="statusFilter">
+              <option value="">Todos</option><option value="planejado">Planejado</option><option value="em-andamento">Em andamento</option><option value="concluido">Concluído</option><option value="atrasado">Atrasado</option>
+            </select>
           </div>
-          <div class="form-field">
-            <label for="eventSubject">Disciplina</label>
-            <input id="eventSubject" name="disciplina" type="text" maxlength="100" placeholder="Todas as disciplinas">
-          </div>
-          <div class="form-field">
-            <label for="eventTime">Horário</label>
-            <input id="eventTime" name="horario" type="text" maxlength="50" placeholder="19:00 ou Dia inteiro">
-          </div>
-          <div class="form-field full">
-            <label for="eventPlace">Local</label>
-            <input id="eventPlace" name="local" type="text" maxlength="120" placeholder="Sala, auditório ou link">
-          </div>
-          <div class="form-field full">
-            <label for="eventDetails">Detalhes</label>
-            <textarea id="eventDetails" name="detalhes" maxlength="1000"></textarea>
-          </div>
-          <div class="form-field full">
-            <label for="eventFile">Materiais da aula — anexos opcionais</label>
-            <input class="file-input" id="eventFile" name="arquivos" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.zip,.py">
-            <p class="form-help">Até 8 arquivos: 6 MB cada e 30 MB no total. Eles só serão baixados quando o aluno tocar para abrir.</p>
-            <div class="current-attachment" id="currentAttachment" hidden>
-              <span class="current-attachment-title">Arquivos já anexados</span>
-              <div class="attachment-edit-list" id="currentAttachmentList"></div>
+          <button class="btn btn-light btn-small" id="clearFilters" type="button">Limpar filtros</button>
+        </section>
+        <section class="panel legend-panel">
+          <h2 class="panel-title">Grupos</h2>
+          <div class="legend-list" id="groupLegend"><p class="helper">Nenhum grupo cadastrado.</p></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <div class="status" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="modal hidden" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <div class="modal-card">
+      <div class="modal-head"><div><h2 id="loginTitle">Acesso dos líderes</h2><p>Entre com o usuário criado no Supabase.</p></div><button class="close" data-close="loginModal" type="button" aria-label="Fechar">×</button></div>
+      <form id="loginForm">
+        <div class="modal-body">
+          <div class="field"><label for="loginEmail">E-mail</label><input id="loginEmail" type="email" autocomplete="email" required></div>
+          <div class="field"><label for="loginPassword">Senha</label><input id="loginPassword" type="password" autocomplete="current-password" minlength="6" required></div>
+          <p class="helper">A consulta do calendário é pública. O login serve somente para os líderes e o coordenador editarem.</p>
+        </div>
+        <div class="modal-actions"><button class="btn btn-primary" type="submit">Entrar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="eventModal" role="dialog" aria-modal="true" aria-labelledby="eventFormTitle">
+    <div class="modal-card large">
+      <div class="modal-head"><div><h2 id="eventFormTitle">Nova atividade</h2><p id="eventFormSubtitle">Preencha os dados do planejamento.</p></div><button class="close" data-close="eventModal" type="button" aria-label="Fechar">×</button></div>
+      <form id="eventForm">
+        <div class="modal-body">
+          <input id="eventId" type="hidden">
+          <div class="form-grid">
+            <div class="field full"><label for="eventTitle">Título</label><input id="eventTitle" maxlength="140" required placeholder="Ex.: Apresentação da suspensão"></div>
+            <div class="field"><label for="eventGroup">Grupo responsável</label><select id="eventGroup" required></select></div>
+            <div class="field"><label for="eventType">Tipo</label><select id="eventType" required><option value="tarefa">Tarefa</option><option value="reuniao">Reunião</option><option value="entrega">Entrega</option><option value="apresentacao">Apresentação</option><option value="teste">Teste</option><option value="marco">Marco</option><option value="aviso">Aviso</option></select></div>
+            <div class="field"><label for="eventDate">Data inicial</label><input id="eventDate" type="date" min="2026-08-01" max="2028-12-31" required></div>
+            <div class="field"><label for="eventEndDate">Data final (opcional)</label><input id="eventEndDate" type="date" min="2026-08-01" max="2028-12-31"></div>
+            <div class="field"><label for="eventStage">Etapa</label><select id="eventStage"><option value="planejamento">Planejamento</option><option value="projeto">Projeto</option><option value="desenvolvimento">Desenvolvimento</option><option value="fabricacao">Fabricação</option><option value="montagem">Montagem</option><option value="testes">Testes</option><option value="apresentacao">Apresentação</option><option value="competicao">Competição</option><option value="outro">Outro</option></select></div>
+            <div class="field"><label for="eventStatus">Andamento</label><select id="eventStatus"><option value="planejado">Planejado</option><option value="em-andamento">Em andamento</option><option value="concluido">Concluído</option><option value="atrasado">Atrasado</option></select></div>
+            <div class="field full"><label for="eventLocation">Local ou plataforma</label><input id="eventLocation" maxlength="160" placeholder="Ex.: Oficina, Teams ou Campus Villa-Lobos"></div>
+            <div class="field full"><label for="eventDetails">Detalhes</label><textarea id="eventDetails" maxlength="3000" placeholder="Organize o texto em linhas. Links começando com https:// ficarão clicáveis."></textarea></div>
+            <div class="field full">
+              <label for="eventFiles">Anexos</label>
+              <input id="eventFiles" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.py,.zip">
+              <p class="helper">Até 8 arquivos por atividade, 6 MB cada e 30 MB no total. Eles só são baixados quando alguém clica.</p>
+              <div class="pending-files" id="pendingFiles"></div>
+              <div class="pending-files" id="existingFiles"></div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="dialog-actions">
-        <button class="action-button primary" type="submit" id="saveEventButton">Salvar evento</button>
-      </div>
-    </form>
-  </dialog>
+        <div class="modal-actions">
+          <button class="btn btn-danger hidden" id="deleteEventBtn" type="button">Excluir</button>
+          <button class="btn btn-light" data-close="eventModal" type="button">Cancelar</button>
+          <button class="btn btn-primary" id="saveEventBtn" type="submit">Salvar atividade</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <div class="modal hidden" id="detailModal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="modal-card">
+      <div class="modal-head"><div><span class="badge" id="detailBadge">Atividade</span><h2 class="detail-title" id="detailTitle"></h2><p class="detail-group" id="detailGroup"></p></div><button class="close" data-close="detailModal" type="button" aria-label="Fechar">×</button></div>
+      <div class="modal-body">
+        <div class="detail-grid"><div class="detail-box"><span>Data</span><strong id="detailDate"></strong></div><div class="detail-box"><span>Etapa</span><strong id="detailStage"></strong></div><div class="detail-box"><span>Andamento</span><strong id="detailStatus"></strong></div></div>
+        <div id="detailLocationWrap"><p class="field-label">Local</p><p id="detailLocation"></p></div>
+        <div id="detailTextWrap"><p class="field-label">Detalhes</p><div class="rich-text" id="detailText"></div></div>
+        <div id="detailAttachmentsWrap"><p class="field-label">Anexos</p><div class="attachments" id="detailAttachments"></div></div>
+      </div>
+      <div class="modal-actions"><button class="btn btn-light hidden" id="editFromDetailBtn" type="button">Editar atividade</button></div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="groupsModal" role="dialog" aria-modal="true" aria-labelledby="groupsTitle">
+    <div class="modal-card large">
+      <div class="modal-head"><div><h2 id="groupsTitle">Grupos e líderes</h2><p>Somente o coordenador geral pode alterar esta lista.</p></div><button class="close" data-close="groupsModal" type="button" aria-label="Fechar">×</button></div>
+      <div class="modal-body">
+        <div class="group-list" id="manageGroupList"></div>
+        <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+        <form id="groupForm">
+          <input id="groupId" type="hidden">
+          <div class="form-grid">
+            <div class="field"><label for="groupName">Nome do grupo</label><input id="groupName" maxlength="80" required placeholder="Ex.: Suspensão"></div>
+            <div class="field"><label for="groupColor">Cor</label><input id="groupColor" type="color" value="#c8de45"></div>
+            <div class="field full"><label for="groupDescription">Descrição</label><input id="groupDescription" maxlength="500" placeholder="Responsabilidade principal do grupo"></div>
+            <div class="field full"><label for="groupLeader">E-mail do líder</label><input id="groupLeader" type="email" placeholder="lider@exemplo.com"><p class="helper">O mesmo e-mail deverá existir em Authentication → Users no Supabase.</p></div>
+          </div>
+          <div class="modal-actions" style="padding:8px 0 0"><button class="btn btn-light hidden" id="cancelGroupEdit" type="button">Cancelar edição</button><button class="btn btn-primary" type="submit">Salvar grupo</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const SUPABASE_URL = "https://gmyirwvyqchllttritje.supabase.co";
-    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_0u5c-ymEcFitiL2zWqla3g_Swcr4SAQ";
-    const MATERIALS_BUCKET = "class-materials";
+    // ================================================================
+    // CONEXÃO DO NOVO SUPABASE DO BAJA
+    // Cole aqui SOMENTE a URL e a chave publicável (publishable/anon).
+    // Nunca coloque a senha do banco, secret key ou service_role no GitHub.
+    // ================================================================
+    const SUPABASE_URL = "COLE_AQUI_A_URL_DO_NOVO_SUPABASE";
+    const SUPABASE_PUBLISHABLE_KEY = "COLE_AQUI_A_CHAVE_PUBLICAVEL";
+
+    const START_DATE = new Date(2026, 7, 1);
+    const END_DATE = new Date(2028, 11, 31);
+    const BUCKET = "baja-files";
+    const MAX_FILES = 8;
     const MAX_FILE_SIZE = 6 * 1024 * 1024;
     const MAX_TOTAL_SIZE = 30 * 1024 * 1024;
-    const MAX_FILES_PER_EVENT = 8;
-    const FILE_TYPES = {
-      pdf: { mime: "application/pdf", icon: "📄" },
-      jpg: { mime: "image/jpeg", icon: "🖼️" },
-      jpeg: { mime: "image/jpeg", icon: "🖼️" },
-      png: { mime: "image/png", icon: "🖼️" },
-      webp: { mime: "image/webp", icon: "🖼️" },
-      gif: { mime: "image/gif", icon: "🖼️" },
-      doc: { mime: "application/msword", icon: "📝" },
-      docx: { mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", icon: "📝" },
-      ppt: { mime: "application/vnd.ms-powerpoint", icon: "📊" },
-      pptx: { mime: "application/vnd.openxmlformats-officedocument.presentationml.presentation", icon: "📊" },
-      xls: { mime: "application/vnd.ms-excel", icon: "📈" },
-      xlsx: { mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", icon: "📈" },
-      txt: { mime: "text/plain", icon: "📃" },
-      csv: { mime: "text/csv", icon: "📈" },
-      zip: { mime: "application/zip", icon: "🗜️" },
-      py: { mime: "text/x-python", icon: "🐍" }
-    };
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-
-    let EVENTOS = [];
-    let currentUser = null;
-    let canEdit = false;
-    let selectedEventId = null;
-    let editingEventId = null;
-
-    const CONFIG = {
-      ano: 2026,
-      meses: [7, 8, 9, 10, 11]
+    const ALLOWED_EXTENSIONS = new Set(["pdf", "jpg", "jpeg", "png", "webp", "gif", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "txt", "csv", "py", "zip"]);
+    const labels = {
+      tarefa: "Tarefa", reuniao: "Reunião", entrega: "Entrega", apresentacao: "Apresentação", teste: "Teste", marco: "Marco", aviso: "Aviso",
+      planejamento: "Planejamento", projeto: "Projeto", desenvolvimento: "Desenvolvimento", fabricacao: "Fabricação", montagem: "Montagem", testes: "Testes", competicao: "Competição", outro: "Outro",
+      planejado: "Planejado", "em-andamento": "Em andamento", concluido: "Concluído", atrasado: "Atrasado"
     };
 
-    const TIPOS = {
-      prova: { nome: "Prova", cor: "#c94b45" },
-      trabalho: { nome: "Trabalho", cor: "#d49a16" },
-      apresentacao: { nome: "Apresentação", cor: "#8b5bc1" },
-      "sem-aula": { nome: "Sem aula", cor: "#718096" },
-      aviso: { nome: "Aviso", cor: "#2c9461" }
-    };
+    const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("COLE_AQUI") && !SUPABASE_PUBLISHABLE_KEY.includes("COLE_AQUI");
+    const client = configured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
+    let currentMonth = clampMonth(new Date());
+    let events = [];
+    let groups = [];
+    let files = [];
+    let user = null;
+    let isAdmin = false;
+    let leaderGroupIds = new Set();
+    let pendingUploads = [];
+    let removedExistingFiles = [];
+    let detailEventId = null;
+    let realtimeChannel = null;
+    let currentView = "calendar";
 
-    const mesesLongos = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" });
-    const dataCompleta = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
-    const dataCurta = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long" });
-    const diaSemanaCurto = new Intl.DateTimeFormat("pt-BR", { weekday: "short" });
+    const $ = (id) => document.getElementById(id);
+    const logo = $("umcLogo");
+    logo.addEventListener("load", () => $("logoSlot").classList.add("has-logo"));
+    logo.addEventListener("error", () => $("logoSlot").classList.remove("has-logo"));
+    if (!configured) $("configWarning").classList.remove("hidden");
 
-    const state = {
-      posicaoMes: Math.max(0, CONFIG.meses.indexOf(new Date().getMonth())),
-      filtro: "todos",
-      visualizacao: "calendar"
-    };
-
-    const elements = {
-      filterRow: document.querySelector("#filterRow"),
-      footerLegend: document.querySelector("#footerLegend"),
-      monthTitle: document.querySelector("#monthTitle"),
-      monthCount: document.querySelector("#monthCount"),
-      calendarGrid: document.querySelector("#calendarGrid"),
-      calendarView: document.querySelector("#calendarView"),
-      listView: document.querySelector("#listView"),
-      prevMonth: document.querySelector("#prevMonth"),
-      nextMonth: document.querySelector("#nextMonth"),
-      todayLabel: document.querySelector("#todayLabel"),
-      nextEventLabel: document.querySelector("#nextEventLabel"),
-      eventDialog: document.querySelector("#eventDialog"),
-      dialogType: document.querySelector("#dialogType"),
-      dialogTitle: document.querySelector("#dialogTitle"),
-      dialogBody: document.querySelector("#dialogBody"),
-      closeDialog: document.querySelector("#closeDialog"),
-      eventActions: document.querySelector("#eventActions"),
-      editEventButton: document.querySelector("#editEventButton"),
-      deleteEventButton: document.querySelector("#deleteEventButton"),
-      loginDialog: document.querySelector("#loginDialog"),
-      loginForm: document.querySelector("#loginForm"),
-      loginSubmit: document.querySelector("#loginSubmit"),
-      loginButton: document.querySelector("#loginButton"),
-      logoutButton: document.querySelector("#logoutButton"),
-      newEventButton: document.querySelector("#newEventButton"),
-      userStatus: document.querySelector("#userStatus"),
-      editorDialog: document.querySelector("#editorDialog"),
-      editorTitle: document.querySelector("#editorTitle"),
-      eventForm: document.querySelector("#eventForm"),
-      eventFile: document.querySelector("#eventFile"),
-      currentAttachment: document.querySelector("#currentAttachment"),
-      currentAttachmentList: document.querySelector("#currentAttachmentList"),
-      saveEventButton: document.querySelector("#saveEventButton"),
-      notice: document.querySelector("#notice")
-    };
-
-    function showNotice(message, type = "info") {
-      elements.notice.textContent = message;
-      elements.notice.className = `notice${type === "error" ? " is-error" : type === "success" ? " is-success" : ""}`;
-      elements.notice.hidden = false;
-      window.clearTimeout(showNotice.timer);
-      showNotice.timer = window.setTimeout(() => { elements.notice.hidden = true; }, 6000);
+    function clampMonth(date) {
+      const d = new Date(date.getFullYear(), date.getMonth(), 1);
+      const start = new Date(START_DATE.getFullYear(), START_DATE.getMonth(), 1);
+      const end = new Date(END_DATE.getFullYear(), END_DATE.getMonth(), 1);
+      return d < start ? start : d > end ? end : d;
     }
-
-    function friendlyError(error) {
-      const message = String(error?.message || error || "Erro desconhecido");
-      if (/invalid login credentials/i.test(message)) return "E-mail ou senha incorretos.";
-      if (/relation .* does not exist/i.test(message)) return "O banco ainda não foi configurado. Execute o arquivo configurar_supabase.sql.";
-      if (/calendar_event_files|column .*arquivo_|bucket not found/i.test(message)) return "Os anexos múltiplos ainda não foram configurados. Execute o arquivo habilitar_multiplos_anexos.sql no Supabase.";
-      if (/row-level security|permission denied|42501/i.test(message)) return "Essa conta não tem permissão para alterar o calendário.";
-      if (/failed to fetch|network/i.test(message)) return "Não foi possível conectar ao calendário. Verifique sua internet.";
-      return message;
-    }
-
-    function parseDate(dateString) {
-      const [year, month, day] = dateString.split("-").map(Number);
-      return new Date(year, month - 1, day);
-    }
-
-    function dateKey(date) {
+    function isoDate(date) {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const day = String(date.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
     }
-
-    function escapeHTML(value) {
-      const characters = { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#039;" };
-      return String(value).replace(/[&<>"']/g, character => characters[character]);
+    function parseDate(value) { const [y, m, d] = value.split("-").map(Number); return new Date(y, m - 1, d); }
+    function formatDate(value, options = { day: "2-digit", month: "long", year: "numeric" }) { return parseDate(value).toLocaleDateString("pt-BR", options); }
+    function humanSize(bytes) { if (bytes < 1024) return `${bytes} B`; if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`; return `${(bytes / 1048576).toFixed(1)} MB`; }
+    function eventGroup(event) { return groups.find(group => group.id === event.group_id); }
+    function canEditEvent(event) { return !!user && (isAdmin || leaderGroupIds.has(event.group_id)); }
+    function canEditGroup(groupId) { return !!user && (isAdmin || leaderGroupIds.has(groupId)); }
+    function randomId() { return crypto.randomUUID ? crypto.randomUUID() : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)); }
+    function sanitizeFileName(name) { const ext = name.includes(".") ? "." + name.split(".").pop().toLowerCase() : ""; const base = name.replace(/\.[^.]+$/, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "arquivo"; return `${base}${ext}`; }
+    function fileContentType(file) {
+      if (file.type) return file.type;
+      const extension = file.name.split(".").pop().toLowerCase();
+      return ({ py: "text/x-python", txt: "text/plain", csv: "text/csv", zip: "application/zip", pdf: "application/pdf" })[extension] || "application/octet-stream";
     }
-
-    function formatDetailValue(value) {
-      const text = String(value ?? "");
-      const urlPattern = /https?:\/\/[^\s<>"']+/gi;
-      const parts = [];
-      let lastIndex = 0;
-
-      text.replace(urlPattern, (matchedUrl, offset) => {
-        let url = matchedUrl;
-        let trailing = "";
-
-        while (/[.,;!]$/.test(url)) {
-          trailing = url.slice(-1) + trailing;
-          url = url.slice(0, -1);
-        }
-
-        parts.push(escapeHTML(text.slice(lastIndex, offset)));
-        parts.push(`<a class="detail-link" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">Abrir link ↗</a>${escapeHTML(trailing)}`);
-        lastIndex = offset + matchedUrl.length;
-        return matchedUrl;
+    function escapeHtml(text) { return String(text ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[char])); }
+    function richText(text) {
+      const escaped = escapeHtml(text || "");
+      const linked = escaped.replace(/(https?:\/\/[^\s<]+)/gi, raw => {
+        const trailing = raw.match(/[),.;!?]+$/)?.[0] || "";
+        const url = raw.slice(0, raw.length - trailing.length);
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>${trailing}`;
       });
+      return linked.replace(/\n/g, "<br>");
+    }
+    function toast(message, error = false) { const el = $("toast"); el.textContent = message; el.classList.toggle("error", error); el.classList.add("show"); clearTimeout(toast.timer); toast.timer = setTimeout(() => el.classList.remove("show"), 3600); }
+    function openModal(id) { $(id).classList.remove("hidden"); document.body.style.overflow = "hidden"; }
+    function closeModal(id) { $(id).classList.add("hidden"); if (![...document.querySelectorAll(".modal")].some(m => !m.classList.contains("hidden"))) document.body.style.overflow = ""; }
+    function setBusy(button, busy, text = "Salvando...") { if (!button.dataset.original) button.dataset.original = button.textContent; button.disabled = busy; button.textContent = busy ? text : button.dataset.original; }
 
-      parts.push(escapeHTML(text.slice(lastIndex)));
-      return parts.join("");
+    async function loadAll(silent = false) {
+      if (!client) { renderAll(); return; }
+      if (!silent) toast("Carregando planejamento...");
+      const [groupResult, eventResult, fileResult] = await Promise.all([
+        client.from("baja_groups").select("*").eq("ativo", true).order("nome"),
+        client.from("baja_events").select("*").order("data").order("titulo"),
+        client.from("baja_event_files").select("*").order("created_at")
+      ]);
+      const error = groupResult.error || eventResult.error || fileResult.error;
+      if (error) { toast(`Não foi possível carregar: ${error.message}`, true); return; }
+      groups = groupResult.data || [];
+      events = eventResult.data || [];
+      files = fileResult.data || [];
+      renderAll();
     }
 
-    function attachmentPublicUrl(path) {
-      if (!path) return "";
-      return supabaseClient.storage.from(MATERIALS_BUCKET).getPublicUrl(path).data.publicUrl;
+    async function loadAuth() {
+      if (!client) { updateAuthUI(); return; }
+      const { data } = await client.auth.getSession();
+      user = data.session?.user || null;
+      await loadPermissions();
+      client.auth.onAuthStateChange(async (_event, session) => {
+        user = session?.user || null;
+        await loadPermissions();
+        renderAll();
+      });
     }
 
-    function fileExtension(fileName) {
-      return String(fileName || "").split(".").pop().toLowerCase();
+    async function loadPermissions() {
+      isAdmin = false;
+      leaderGroupIds = new Set();
+      if (!client || !user) { updateAuthUI(); return; }
+      const email = (user.email || "").toLowerCase();
+      const [adminResult, leaderResult] = await Promise.all([
+        client.from("baja_admins").select("email").eq("email", email).maybeSingle(),
+        client.from("baja_group_leaders").select("group_id,email")
+      ]);
+      isAdmin = !!adminResult.data;
+      if (!leaderResult.error) leaderGroupIds = new Set((leaderResult.data || []).filter(row => isAdmin || row.email === email).map(row => row.group_id));
+      updateAuthUI();
     }
 
-    function safeFileName(fileName) {
-      const extension = fileExtension(fileName);
-      const base = String(fileName || "material")
-        .replace(/\.[^.]+$/, "")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-zA-Z0-9_-]+/g, "-")
-        .replace(/^-+|-+$/g, "")
-        .slice(0, 80) || "material";
-      return `${base}.${extension}`;
+    function updateAuthUI() {
+      $("loginBtn").textContent = user ? "Sair" : "Entrar";
+      $("groupsBtn").classList.toggle("hidden", !isAdmin);
+      $("newEventBtn").classList.toggle("hidden", !user || (!isAdmin && leaderGroupIds.size === 0));
     }
 
-    function validateFile(file) {
-      const extension = fileExtension(file.name);
-      if (!FILE_TYPES[extension]) {
-        return `O formato .${extension || "?"} não é permitido.`;
-      }
-      if (file.size > MAX_FILE_SIZE) {
-        return `“${file.name}” ultrapassa o limite de 6 MB.`;
-      }
-      return "";
-    }
-
-    function formatFileSize(bytes) {
-      if (!Number.isFinite(Number(bytes))) return "";
-      const size = Number(bytes);
-      if (size < 1024) return `${size} B`;
-      if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`;
-      return `${(size / (1024 * 1024)).toFixed(1).replace(".0", "")} MB`;
-    }
-
-    function attachmentIcon(fileName) {
-      return FILE_TYPES[fileExtension(fileName)]?.icon || "📎";
-    }
-
-    function isSameDate(a, b) {
-      return a.getFullYear() === b.getFullYear()
-        && a.getMonth() === b.getMonth()
-        && a.getDate() === b.getDate();
-    }
-
-    function filteredEvents() {
-      const events = [...EVENTOS].sort((a, b) => a.data.localeCompare(b.data) || a.horario.localeCompare(b.horario));
-      return state.filtro === "todos" ? events : events.filter(event => event.tipo === state.filtro);
-    }
-
-    function eventsForMonth() {
-      const month = CONFIG.meses[state.posicaoMes];
-      return filteredEvents().filter(event => {
+    function getFilteredEvents(monthOnly = true) {
+      const query = $("searchInput").value.trim().toLowerCase();
+      const group = $("groupFilter").value;
+      const stage = $("stageFilter").value;
+      const status = $("statusFilter").value;
+      return events.filter(event => {
         const date = parseDate(event.data);
-        return date.getFullYear() === CONFIG.ano && date.getMonth() === month;
+        if (monthOnly && (date.getFullYear() !== currentMonth.getFullYear() || date.getMonth() !== currentMonth.getMonth())) return false;
+        if (group && event.group_id !== group) return false;
+        if (stage && event.etapa !== stage) return false;
+        if (status && event.status !== status) return false;
+        if (query && !`${event.titulo} ${event.local} ${event.detalhes} ${eventGroup(event)?.nome || ""}`.toLowerCase().includes(query)) return false;
+        return true;
       });
     }
 
-    function createFilters() {
-      const items = [["todos", { nome: "Todos", cor: "#2f75b5" }], ...Object.entries(TIPOS)];
-      elements.filterRow.innerHTML = items.map(([key, meta]) => `
-        <button class="filter-chip" type="button" data-filter="${key}" aria-pressed="${key === state.filtro}">
-          <span class="filter-dot" style="--chip-color:${meta.cor}"></span>
-          ${meta.nome}
-        </button>
-      `).join("");
+    function renderAll() {
+      renderGroupChoices();
+      renderLegend();
+      renderSummary();
+      renderCalendar();
+      renderAgenda();
+      updateAuthUI();
+    }
 
-      elements.filterRow.querySelectorAll("[data-filter]").forEach(button => {
-        button.addEventListener("click", () => {
-          state.filtro = button.dataset.filter;
-          createFilters();
-          render();
-        });
+    function renderGroupChoices() {
+      const filter = $("groupFilter");
+      const previous = filter.value;
+      filter.replaceChildren(new Option("Todos os grupos", ""));
+      groups.forEach(group => filter.add(new Option(group.nome, group.id)));
+      if ([...filter.options].some(option => option.value === previous)) filter.value = previous;
+      const eventSelect = $("eventGroup");
+      const selected = eventSelect.value;
+      eventSelect.replaceChildren();
+      groups.filter(group => isAdmin || leaderGroupIds.has(group.id)).forEach(group => eventSelect.add(new Option(group.nome, group.id)));
+      if ([...eventSelect.options].some(option => option.value === selected)) eventSelect.value = selected;
+    }
+
+    function renderLegend() {
+      const wrap = $("groupLegend");
+      wrap.replaceChildren();
+      if (!groups.length) { const p = document.createElement("p"); p.className = "helper"; p.textContent = "Nenhum grupo cadastrado."; wrap.append(p); return; }
+      groups.forEach(group => {
+        const row = document.createElement("div"); row.className = "legend-item";
+        const color = document.createElement("span"); color.className = "legend-color"; color.style.setProperty("--legend-color", group.cor);
+        const name = document.createElement("span"); name.textContent = group.nome;
+        const count = document.createElement("small"); count.textContent = events.filter(event => event.group_id === group.id).length;
+        row.append(color, name, count); wrap.append(row);
       });
     }
 
-    function createLegend() {
-      elements.footerLegend.innerHTML = Object.entries(TIPOS).map(([key, meta]) => `
-        <span class="legend-item type-${key}">
-          <span class="legend-dot" aria-hidden="true"></span>${meta.nome}
-        </span>
-      `).join("");
+    function renderSummary() {
+      const today = isoDate(new Date());
+      const next = [...events].filter(event => event.data >= today && event.status !== "concluido").sort((a, b) => a.data.localeCompare(b.data))[0];
+      $("nextEventValue").textContent = next ? next.titulo : "Nenhuma cadastrada";
+      $("nextEventNote").textContent = next ? `${formatDate(next.data, { day: "2-digit", month: "short" })} · ${eventGroup(next)?.nome || "Sem grupo"}` : "O cronograma está livre.";
+      $("activeGroupsValue").textContent = `${groups.length} ${groups.length === 1 ? "grupo" : "grupos"}`;
     }
 
     function renderCalendar() {
-      const month = CONFIG.meses[state.posicaoMes];
-      const first = new Date(CONFIG.ano, month, 1);
-      const mondayOffset = (first.getDay() + 6) % 7;
-      const gridStart = new Date(CONFIG.ano, month, 1 - mondayOffset);
-      const today = new Date();
-      const map = new Map();
-
-      filteredEvents().forEach(event => {
-        const list = map.get(event.data) || [];
-        list.push(event);
-        map.set(event.data, list);
-      });
-
-      const cells = [];
-      for (let index = 0; index < 42; index += 1) {
-        const date = new Date(gridStart);
-        date.setDate(gridStart.getDate() + index);
-        const events = map.get(dateKey(date)) || [];
-        const isOutside = date.getMonth() !== month;
-        const visibleEvents = events.slice(0, 3);
-        const description = `${dataCompleta.format(date)}${events.length ? `, ${events.length} compromisso${events.length > 1 ? "s" : ""}` : ""}`;
-
-        cells.push(`
-          <article class="day-cell${isOutside ? " is-outside" : ""}${isSameDate(date, today) ? " is-today" : ""}" aria-label="${description}">
-            <div class="day-number">${date.getDate()}</div>
-            <div class="day-events">
-              ${visibleEvents.map(event => `
-                <button class="event-pill type-${event.tipo}" type="button" data-event-id="${event.id}" title="${escapeHTML(event.titulo)}" aria-label="${escapeHTML(`${TIPOS[event.tipo].nome}: ${event.titulo}`)}">
-                  <span class="event-label-full">${escapeHTML(event.titulo)}</span>
-                  <span class="event-label-short">${escapeHTML(TIPOS[event.tipo].nome.slice(0, 3))}</span>
-                </button>
-              `).join("")}
-              ${events.length > 3 ? `<span class="more-events">+ ${events.length - 3} compromisso${events.length - 3 > 1 ? "s" : ""}</span>` : ""}
-            </div>
-          </article>
-        `);
+      $("monthTitle").textContent = currentMonth.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+      $("prevMonth").disabled = currentMonth.getFullYear() === 2026 && currentMonth.getMonth() === 7;
+      $("nextMonth").disabled = currentMonth.getFullYear() === 2028 && currentMonth.getMonth() === 11;
+      const grid = $("calendarGrid"); grid.replaceChildren();
+      const first = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+      const start = new Date(first); start.setDate(1 - first.getDay());
+      const today = isoDate(new Date());
+      const filtered = getFilteredEvents(false);
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(start); date.setDate(start.getDate() + i);
+        const dateIso = isoDate(date);
+        const dayEvents = filtered.filter(event => event.data <= dateIso && (event.data_fim || event.data) >= dateIso);
+        const day = document.createElement("div"); day.className = "day";
+        if (date.getMonth() !== currentMonth.getMonth()) day.classList.add("outside");
+        if (dateIso === today) day.classList.add("today");
+        if (dayEvents.length) day.classList.add("has-events");
+        const head = document.createElement("div"); head.className = "day-head";
+        const number = document.createElement("span"); number.className = "day-number"; number.textContent = date.getDate();
+        const add = document.createElement("button"); add.className = "day-add"; add.type = "button"; add.textContent = "+"; add.title = "Adicionar nesta data";
+        add.disabled = date < START_DATE || date > END_DATE || !user;
+        add.addEventListener("click", () => openEventEditor(null, dateIso));
+        head.append(number, add);
+        const stack = document.createElement("div"); stack.className = "event-stack";
+        dayEvents.slice(0, 3).forEach(event => {
+          const chip = document.createElement("button"); chip.type = "button"; chip.className = "event-chip"; chip.textContent = event.titulo; chip.title = event.titulo;
+          chip.style.setProperty("--event-color", eventGroup(event)?.cor || "#143b2d"); chip.addEventListener("click", () => openDetail(event.id)); stack.append(chip);
+        });
+        if (dayEvents.length > 3) { const more = document.createElement("div"); more.className = "more-events"; more.textContent = `+ ${dayEvents.length - 3} atividade(s)`; stack.append(more); }
+        day.append(head, stack); grid.append(day);
       }
-
-      elements.calendarGrid.innerHTML = cells.join("");
-      bindEventButtons(elements.calendarGrid);
     }
 
-    function renderList() {
-      const monthEvents = eventsForMonth();
-      if (!monthEvents.length) {
-        elements.listView.innerHTML = `
-          <div class="empty-state">
-            <div><strong>Nenhum compromisso encontrado</strong>Tente selecionar outra categoria ou outro mês.</div>
-          </div>
-        `;
-        return;
-      }
-
-      const groups = new Map();
-      monthEvents.forEach(event => {
-        const list = groups.get(event.data) || [];
-        list.push(event);
-        groups.set(event.data, list);
-      });
-
-      elements.listView.innerHTML = [...groups.entries()].map(([dateString, events]) => {
-        const date = parseDate(dateString);
-        return `
-          <section class="agenda-day" aria-label="${dataCompleta.format(date)}">
-            <div class="agenda-date">
-              <strong>${String(date.getDate()).padStart(2, "0")}</strong>
-              ${diaSemanaCurto.format(date).replace(".", "")}
-            </div>
-            <div class="agenda-items">
-              ${events.map(event => `
-                <button class="agenda-item type-${event.tipo}" type="button" data-event-id="${event.id}">
-                  <strong>${escapeHTML(event.titulo)}</strong>
-                  <span>${escapeHTML(event.horario)} • ${escapeHTML(event.disciplina)}</span>
-                </button>
-              `).join("")}
-            </div>
-          </section>
-        `;
-      }).join("");
-      bindEventButtons(elements.listView);
-    }
-
-    function bindEventButtons(container) {
-      container.querySelectorAll("[data-event-id]").forEach(button => {
-        button.addEventListener("click", () => openEvent(button.dataset.eventId));
+    function renderAgenda() {
+      const wrap = $("agendaView"); wrap.replaceChildren();
+      const monthly = getFilteredEvents(true);
+      const dates = [...new Set(monthly.map(event => event.data))].sort();
+      if (!dates.length) { const p = document.createElement("p"); p.className = "empty"; p.textContent = "Nenhuma atividade encontrada neste mês."; wrap.append(p); return; }
+      dates.forEach(date => {
+        const row = document.createElement("div"); row.className = "agenda-day";
+        const label = document.createElement("div"); label.className = "agenda-date"; const parsed = parseDate(date); label.innerHTML = `<strong>${parsed.getDate()}</strong>${parsed.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "")}`;
+        const items = document.createElement("div");
+        monthly.filter(event => event.data === date).forEach(event => {
+          const button = document.createElement("button"); button.className = "agenda-event"; button.type = "button"; button.style.setProperty("--event-color", eventGroup(event)?.cor || "#143b2d");
+          const dot = document.createElement("span"); dot.className = "agenda-event-dot";
+          const text = document.createElement("span"); const title = document.createElement("strong"); title.textContent = event.titulo; const meta = document.createElement("small"); meta.textContent = `${eventGroup(event)?.nome || "Sem grupo"} · ${labels[event.etapa] || event.etapa}`; text.append(title, meta);
+          const status = document.createElement("small"); status.textContent = labels[event.status] || event.status;
+          button.append(dot, text, status); button.addEventListener("click", () => openDetail(event.id)); items.append(button);
+        });
+        row.append(label, items); wrap.append(row);
       });
     }
 
-    function openEvent(eventId) {
-      const event = EVENTOS.find(item => item.id === eventId);
-      if (!event) return;
-      const meta = TIPOS[event.tipo];
-      const date = parseDate(event.data);
-
-      elements.dialogType.className = `dialog-type type-${event.tipo}`;
-      elements.dialogType.textContent = meta.nome;
-      elements.dialogTitle.textContent = event.titulo;
-      const detailsHTML = [
-        ["Data", dataCompleta.format(date)],
-        ["Horário", event.horario],
-        ["Disciplina", event.disciplina],
-        ["Local", event.local],
-        ["Detalhes", event.detalhes]
-      ].map(([label, value]) => `
-        <div class="detail-row">
-          <span class="detail-label">${label}</span>
-          <span class="detail-value">${formatDetailValue(value)}</span>
-        </div>
-      `).join("");
-      const attachments = event.anexos?.length
-        ? event.anexos
-        : event.arquivo_path
-          ? [{ id: null, nome: event.arquivo_nome || "Abrir arquivo", storage_path: event.arquivo_path, tamanho_bytes: null }]
-          : [];
-      const attachmentHTML = attachments.length ? `
-        <div class="detail-row">
-          <span class="detail-label">Materiais</span>
-          <div class="detail-value attachment-list">
-            ${attachments.map(attachment => `
-              <a class="attachment-button" href="${escapeHTML(attachmentPublicUrl(attachment.storage_path))}" target="_blank" rel="noopener noreferrer">
-                <span>${attachmentIcon(attachment.nome)} ${escapeHTML(attachment.nome || "Abrir arquivo")}</span>
-                <small class="attachment-meta">${formatFileSize(attachment.tamanho_bytes)} ↗</small>
-              </a>
-            `).join("")}
-          </div>
-        </div>
-      ` : "";
-      elements.dialogBody.innerHTML = detailsHTML + attachmentHTML;
-      selectedEventId = event.id;
-      elements.eventActions.hidden = !canEdit;
-      elements.eventDialog.showModal();
+    async function openDetail(id) {
+      const event = events.find(item => item.id === id); if (!event) return;
+      detailEventId = id;
+      $("detailBadge").textContent = labels[event.tipo] || event.tipo;
+      $("detailTitle").textContent = event.titulo;
+      $("detailGroup").textContent = eventGroup(event)?.nome || "Grupo não encontrado";
+      $("detailDate").textContent = event.data_fim ? `${formatDate(event.data)} até ${formatDate(event.data_fim)}` : formatDate(event.data);
+      $("detailStage").textContent = labels[event.etapa] || event.etapa;
+      $("detailStatus").textContent = labels[event.status] || event.status;
+      $("detailLocation").textContent = event.local || "Não informado";
+      $("detailText").innerHTML = richText(event.detalhes || "Sem detalhes adicionais.");
+      $("detailLocationWrap").classList.toggle("hidden", !event.local);
+      $("detailTextWrap").classList.toggle("hidden", !event.detalhes);
+      const eventFiles = files.filter(file => file.event_id === id);
+      const attachmentWrap = $("detailAttachments"); attachmentWrap.replaceChildren();
+      eventFiles.forEach(file => {
+        const row = document.createElement("div"); row.className = "attachment";
+        const name = document.createElement("span"); name.className = "attachment-name"; name.textContent = `${file.nome} · ${humanSize(file.tamanho_bytes)}`;
+        const link = document.createElement("a"); link.className = "btn btn-light btn-small"; link.textContent = "Abrir"; link.target = "_blank"; link.rel = "noopener noreferrer"; link.href = client.storage.from(BUCKET).getPublicUrl(file.storage_path).data.publicUrl;
+        row.append(name, link); attachmentWrap.append(row);
+      });
+      $("detailAttachmentsWrap").classList.toggle("hidden", eventFiles.length === 0);
+      $("editFromDetailBtn").classList.toggle("hidden", !canEditEvent(event));
+      openModal("detailModal");
     }
 
-    async function loadEvents({ quiet = false } = {}) {
-      const { data, error } = await supabaseClient
-        .from("calendar_events")
-        .select("id,data,tipo,titulo,disciplina,horario,local,detalhes,arquivo_nome,arquivo_path,anexos:calendar_event_files(id,nome,storage_path,mime_type,tamanho_bytes)")
-        .order("data", { ascending: true })
-        .order("horario", { ascending: true });
+    function openEventEditor(event = null, presetDate = "") {
+      if (!user) { openModal("loginModal"); return; }
+      if (!event && !isAdmin && leaderGroupIds.size === 0) { toast("Seu e-mail ainda não está vinculado a um grupo.", true); return; }
+      pendingUploads = []; removedExistingFiles = [];
+      $("eventForm").reset(); $("eventId").value = event?.id || "";
+      $("eventFormTitle").textContent = event ? "Editar atividade" : "Nova atividade";
+      $("eventTitle").value = event?.titulo || "";
+      $("eventDate").value = event?.data || presetDate || isoDate(clampMonth(new Date()));
+      $("eventEndDate").value = event?.data_fim || "";
+      $("eventType").value = event?.tipo || "tarefa"; $("eventStage").value = event?.etapa || "planejamento"; $("eventStatus").value = event?.status || "planejado";
+      $("eventLocation").value = event?.local || ""; $("eventDetails").value = event?.detalhes || "";
+      renderGroupChoices(); if (event) $("eventGroup").value = event.group_id;
+      $("deleteEventBtn").classList.toggle("hidden", !event);
+      renderPendingFiles(); renderExistingFiles(event?.id);
+      openModal("eventModal");
+    }
 
-      if (error) {
-        if (!quiet) showNotice(friendlyError(error), "error");
-        return;
+    function renderPendingFiles() {
+      const wrap = $("pendingFiles"); wrap.replaceChildren();
+      pendingUploads.forEach((file, index) => {
+        const row = document.createElement("div"); row.className = "pending-file"; const name = document.createElement("span"); name.textContent = `${file.name} · ${humanSize(file.size)}`;
+        const remove = document.createElement("button"); remove.type = "button"; remove.className = "remove-file"; remove.textContent = "Remover"; remove.addEventListener("click", () => { pendingUploads.splice(index, 1); renderPendingFiles(); });
+        row.append(name, remove); wrap.append(row);
+      });
+    }
+
+    function renderExistingFiles(eventId) {
+      const wrap = $("existingFiles"); wrap.replaceChildren();
+      files.filter(file => file.event_id === eventId && !removedExistingFiles.some(removed => removed.id === file.id)).forEach(file => {
+        const row = document.createElement("div"); row.className = "pending-file"; const name = document.createElement("span"); name.textContent = `${file.nome} · já anexado`;
+        const remove = document.createElement("button"); remove.type = "button"; remove.className = "remove-file"; remove.textContent = "Excluir"; remove.addEventListener("click", () => { removedExistingFiles.push(file); renderExistingFiles(eventId); });
+        row.append(name, remove); wrap.append(row);
+      });
+    }
+
+    function validatePendingFiles(candidateFiles, existingCount) {
+      const combined = [...pendingUploads, ...candidateFiles];
+      if (existingCount + combined.length > MAX_FILES) return `Cada atividade aceita no máximo ${MAX_FILES} arquivos.`;
+      if (combined.some(file => file.size > MAX_FILE_SIZE)) return "Cada arquivo pode ter no máximo 6 MB.";
+      if (combined.reduce((sum, file) => sum + file.size, 0) > MAX_TOTAL_SIZE) return "Os novos arquivos ultrapassam o limite total de 30 MB.";
+      if (combined.some(file => !ALLOWED_EXTENSIONS.has(file.name.split(".").pop().toLowerCase()))) return "Um dos arquivos tem um formato não permitido.";
+      return "";
+    }
+
+    async function uploadFiles(eventId) {
+      for (const file of pendingUploads) {
+        const path = `${eventId}/${Date.now()}-${randomId().slice(0, 8)}-${sanitizeFileName(file.name)}`;
+        const contentType = fileContentType(file);
+        const { error: uploadError } = await client.storage.from(BUCKET).upload(path, file, { cacheControl: "3600", upsert: false, contentType });
+        if (uploadError) throw uploadError;
+        const { error: metadataError } = await client.from("baja_event_files").insert({ event_id: eventId, nome: file.name.slice(0, 255), storage_path: path, mime_type: contentType, tamanho_bytes: file.size });
+        if (metadataError) { await client.storage.from(BUCKET).remove([path]); throw metadataError; }
       }
-
-      EVENTOS = data || [];
-      updateSummary();
-      render();
     }
 
-    async function refreshAuth(user) {
-      currentUser = user || null;
-      canEdit = false;
-
-      if (currentUser?.email) {
-        const { data, error } = await supabaseClient
-          .from("calendar_editors")
-          .select("email")
-          .eq("email", currentUser.email.toLowerCase())
-          .maybeSingle();
-        canEdit = Boolean(data && !error);
-      }
-
-      elements.loginButton.hidden = Boolean(currentUser);
-      elements.logoutButton.hidden = !currentUser;
-      elements.newEventButton.hidden = !canEdit;
-      elements.userStatus.textContent = canEdit
-        ? `Editor: ${currentUser.email}`
-        : currentUser
-          ? `Sem permissão: ${currentUser.email}`
-          : "Somente leitura";
-      elements.eventActions.hidden = !(canEdit && elements.eventDialog.open);
-    }
-
-    function defaultEventDate() {
-      const month = CONFIG.meses[state.posicaoMes];
-      const today = new Date();
-      const inVisibleMonth = today.getFullYear() === CONFIG.ano && today.getMonth() === month;
-      return dateKey(inVisibleMonth ? today : new Date(CONFIG.ano, month, 1));
-    }
-
-    function openEditor(event = null) {
-      if (!canEdit) {
-        showNotice("Entre com uma conta autorizada para editar.", "error");
-        return;
-      }
-
-      editingEventId = event?.id || null;
-      elements.editorTitle.textContent = event ? "Editar evento" : "Novo evento";
-      elements.eventForm.elements.data.value = event?.data || defaultEventDate();
-      elements.eventForm.elements.tipo.value = event?.tipo || "aviso";
-      elements.eventForm.elements.titulo.value = event?.titulo || "";
-      elements.eventForm.elements.disciplina.value = event?.disciplina || "";
-      elements.eventForm.elements.horario.value = event?.horario || "";
-      elements.eventForm.elements.local.value = event?.local || "";
-      elements.eventForm.elements.detalhes.value = event?.detalhes || "";
-      elements.eventFile.value = "";
-      const attachments = event?.anexos?.length
-        ? event.anexos
-        : event?.arquivo_path
-          ? [{ id: null, nome: event.arquivo_nome || "Arquivo anexado", storage_path: event.arquivo_path }]
-          : [];
-      elements.currentAttachment.hidden = attachments.length === 0;
-      elements.currentAttachmentList.innerHTML = attachments.map(attachment => `
-        <div class="attachment-edit-item">
-          <span class="attachment-edit-name">${attachmentIcon(attachment.nome)} ${escapeHTML(attachment.nome)}</span>
-          ${attachment.id ? `
-            <label class="remove-attachment">
-              <input type="checkbox" data-remove-attachment="${attachment.id}">
-              Remover
-            </label>
-          ` : ""}
-        </div>
-      `).join("");
-      elements.editorDialog.showModal();
-      window.setTimeout(() => elements.eventForm.elements.titulo.focus(), 50);
+    async function removeFiles(fileList) {
+      if (!fileList.length) return;
+      const { error: storageError } = await client.storage.from(BUCKET).remove(fileList.map(file => file.storage_path));
+      if (storageError) throw storageError;
+      const { error: metadataError } = await client.from("baja_event_files").delete().in("id", fileList.map(file => file.id));
+      if (metadataError) throw metadataError;
     }
 
     async function saveEvent(event) {
-      event.preventDefault();
-      if (!canEdit) return;
-
-      const formData = new FormData(elements.eventForm);
-      const previousEvent = editingEventId ? EVENTOS.find(item => item.id === editingEventId) : null;
-      const currentAttachments = previousEvent?.anexos || [];
-      const removalIds = new Set(
-        [...elements.currentAttachmentList.querySelectorAll("[data-remove-attachment]:checked")]
-          .map(input => input.dataset.removeAttachment)
-      );
-      const attachmentsToRemove = currentAttachments.filter(attachment => removalIds.has(attachment.id));
-      const retainedAttachments = currentAttachments.filter(attachment => !removalIds.has(attachment.id));
-      const newFiles = [...elements.eventFile.files];
-
-      for (const file of newFiles) {
-        const fileError = validateFile(file);
-        if (fileError) {
-          showNotice(fileError, "error");
-          return;
-        }
-      }
-
-      if (retainedAttachments.length + newFiles.length > MAX_FILES_PER_EVENT) {
-        showNotice(`Cada evento pode ter no máximo ${MAX_FILES_PER_EVENT} arquivos.`, "error");
-        return;
-      }
-
-      const totalSize = retainedAttachments.reduce((sum, attachment) => sum + Number(attachment.tamanho_bytes || 0), 0)
-        + newFiles.reduce((sum, file) => sum + file.size, 0);
-      if (totalSize > MAX_TOTAL_SIZE) {
-        showNotice("A soma dos arquivos deste evento precisa ter no máximo 30 MB.", "error");
-        return;
-      }
-
-      const recordId = editingEventId || crypto.randomUUID();
-      const uploadedFiles = [];
-
-      elements.saveEventButton.disabled = true;
-      elements.saveEventButton.textContent = newFiles.length ? "Enviando arquivos…" : "Salvando…";
-
-      for (const [index, file] of newFiles.entries()) {
-        const type = FILE_TYPES[fileExtension(file.name)];
-        const storagePath = `${recordId}/${Date.now()}-${index}-${safeFileName(file.name)}`;
-        const { error: uploadError } = await supabaseClient.storage
-          .from(MATERIALS_BUCKET)
-          .upload(storagePath, file, {
-            cacheControl: "3600",
-            contentType: type.mime,
-            upsert: false
-          });
-
-        if (uploadError) {
-          if (uploadedFiles.length) {
-            await supabaseClient.storage.from(MATERIALS_BUCKET).remove(uploadedFiles.map(item => item.storage_path));
-          }
-          elements.saveEventButton.disabled = false;
-          elements.saveEventButton.textContent = "Salvar evento";
-          showNotice(friendlyError(uploadError), "error");
-          return;
-        }
-
-        uploadedFiles.push({
-          event_id: recordId,
-          nome: file.name.slice(0, 255),
-          storage_path: storagePath,
-          mime_type: type.mime,
-          tamanho_bytes: file.size
-        });
-      }
-
+      event.preventDefault(); if (!client || !user) return;
+      const button = $("saveEventBtn"); setBusy(button, true);
+      const id = $("eventId").value || randomId();
+      const groupId = $("eventGroup").value;
+      const existingCount = files.filter(file => file.event_id === id && !removedExistingFiles.some(r => r.id === file.id)).length;
+      const validation = validatePendingFiles([], existingCount);
+      if (validation) { toast(validation, true); setBusy(button, false); return; }
       const payload = {
-        data: formData.get("data"),
-        tipo: formData.get("tipo"),
-        titulo: String(formData.get("titulo") || "").trim(),
-        disciplina: String(formData.get("disciplina") || "").trim() || "Todas as disciplinas",
-        horario: String(formData.get("horario") || "").trim() || "Dia inteiro",
-        local: String(formData.get("local") || "").trim() || "—",
-        detalhes: String(formData.get("detalhes") || "").trim() || "Sem detalhes adicionais.",
-        updated_at: new Date().toISOString()
+        id, group_id: groupId, data: $("eventDate").value, data_fim: $("eventEndDate").value || null,
+        tipo: $("eventType").value, etapa: $("eventStage").value, status: $("eventStatus").value,
+        titulo: $("eventTitle").value.trim(), local: $("eventLocation").value.trim(), detalhes: $("eventDetails").value.trim(), updated_at: new Date().toISOString()
       };
-
-      elements.saveEventButton.textContent = "Salvando…";
-      const query = editingEventId
-        ? supabaseClient.from("calendar_events").update(payload).eq("id", editingEventId)
-        : supabaseClient.from("calendar_events").insert({ id: recordId, ...payload });
-      const { error } = await query;
-
-      if (error) {
-        if (uploadedFiles.length) {
-          await supabaseClient.storage.from(MATERIALS_BUCKET).remove(uploadedFiles.map(item => item.storage_path));
-        }
-        elements.saveEventButton.disabled = false;
-        elements.saveEventButton.textContent = "Salvar evento";
-        showNotice(friendlyError(error), "error");
-        return;
-      }
-
-      if (uploadedFiles.length) {
-        const { error: attachmentError } = await supabaseClient.from("calendar_event_files").insert(uploadedFiles);
-        if (attachmentError) {
-          await supabaseClient.storage.from(MATERIALS_BUCKET).remove(uploadedFiles.map(item => item.storage_path));
-          if (!editingEventId) {
-            await supabaseClient.from("calendar_events").delete().eq("id", recordId);
-          }
-          elements.saveEventButton.disabled = false;
-          elements.saveEventButton.textContent = "Salvar evento";
-          showNotice(friendlyError(attachmentError), "error");
-          return;
-        }
-      }
-
-      if (attachmentsToRemove.length) {
-        const { error: removalError } = await supabaseClient
-          .from("calendar_event_files")
-          .delete()
-          .in("id", attachmentsToRemove.map(attachment => attachment.id));
-        if (removalError) {
-          elements.saveEventButton.disabled = false;
-          elements.saveEventButton.textContent = "Salvar evento";
-          showNotice(friendlyError(removalError), "error");
-          return;
-        }
-        await supabaseClient.storage
-          .from(MATERIALS_BUCKET)
-          .remove(attachmentsToRemove.map(attachment => attachment.storage_path));
-      }
-
-      elements.saveEventButton.disabled = false;
-      elements.saveEventButton.textContent = "Salvar evento";
-      elements.editorDialog.close();
-      showNotice(editingEventId ? "Evento atualizado." : "Evento criado.", "success");
-      await loadEvents({ quiet: true });
+      if (payload.data_fim && payload.data_fim < payload.data) { toast("A data final não pode ser anterior à inicial.", true); setBusy(button, false); return; }
+      if (!canEditGroup(groupId)) { toast("Você não tem permissão para alterar este grupo.", true); setBusy(button, false); return; }
+      const isNew = !$("eventId").value;
+      try {
+        const result = isNew ? await client.from("baja_events").insert(payload) : await client.from("baja_events").update(payload).eq("id", id);
+        if (result.error) throw result.error;
+        await removeFiles(removedExistingFiles);
+        await uploadFiles(id);
+        closeModal("eventModal"); toast("Atividade salva com sucesso."); await loadAll(true);
+      } catch (error) {
+        toast(`Não foi possível salvar: ${error.message}`, true);
+      } finally { setBusy(button, false); }
     }
 
-    async function deleteSelectedEvent() {
-      if (!canEdit || !selectedEventId) return;
-      const event = EVENTOS.find(item => item.id === selectedEventId);
-      if (!event || !window.confirm(`Excluir “${event.titulo}”?`)) return;
-
-      elements.deleteEventButton.disabled = true;
-      const { error } = await supabaseClient.from("calendar_events").delete().eq("id", selectedEventId);
-      elements.deleteEventButton.disabled = false;
-      if (error) {
-        showNotice(friendlyError(error), "error");
-        return;
-      }
-
-      const attachmentPaths = (event.anexos || []).map(attachment => attachment.storage_path);
-      if (attachmentPaths.length) {
-        await supabaseClient.storage.from(MATERIALS_BUCKET).remove(attachmentPaths);
-      }
-
-      elements.eventDialog.close();
-      showNotice("Evento excluído.", "success");
-      await loadEvents({ quiet: true });
+    async function deleteEvent() {
+      const id = $("eventId").value; const event = events.find(item => item.id === id);
+      if (!event || !canEditEvent(event) || !confirm(`Excluir “${event.titulo}” e seus anexos?`)) return;
+      const button = $("deleteEventBtn"); setBusy(button, true, "Excluindo...");
+      try {
+        const eventFiles = files.filter(file => file.event_id === id);
+        if (eventFiles.length) { const { error } = await client.storage.from(BUCKET).remove(eventFiles.map(file => file.storage_path)); if (error) throw error; }
+        const { error } = await client.from("baja_events").delete().eq("id", id); if (error) throw error;
+        closeModal("eventModal"); toast("Atividade excluída."); await loadAll(true);
+      } catch (error) { toast(`Não foi possível excluir: ${error.message}`, true); }
+      finally { setBusy(button, false); }
     }
 
-    async function login(event) {
-      event.preventDefault();
-      const formData = new FormData(elements.loginForm);
-      elements.loginSubmit.disabled = true;
-      elements.loginSubmit.textContent = "Entrando…";
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email: String(formData.get("email") || "").trim().toLowerCase(),
-        password: String(formData.get("password") || "")
+    async function openGroupsManager() {
+      if (!isAdmin) return; await renderManageGroups(); resetGroupForm(); openModal("groupsModal");
+    }
+
+    async function renderManageGroups() {
+      const wrap = $("manageGroupList"); wrap.replaceChildren();
+      const { data: leaders } = await client.from("baja_group_leaders").select("group_id,email");
+      groups.forEach(group => {
+        const row = document.createElement("div"); row.className = "group-row";
+        const dot = document.createElement("span"); dot.className = "group-dot"; dot.style.setProperty("--group-color", group.cor);
+        const info = document.createElement("div"); const name = document.createElement("strong"); name.textContent = group.nome; const leader = document.createElement("small"); leader.textContent = leaders?.find(item => item.group_id === group.id)?.email || "Sem líder definido"; info.append(name, leader);
+        const edit = document.createElement("button"); edit.className = "btn btn-light btn-small"; edit.type = "button"; edit.textContent = "Editar"; edit.addEventListener("click", () => { $("groupId").value = group.id; $("groupName").value = group.nome; $("groupColor").value = group.cor; $("groupDescription").value = group.descricao || ""; $("groupLeader").value = leader.textContent === "Sem líder definido" ? "" : leader.textContent; $("cancelGroupEdit").classList.remove("hidden"); $("groupName").focus(); });
+        row.append(dot, info, edit); wrap.append(row);
       });
-      elements.loginSubmit.disabled = false;
-      elements.loginSubmit.textContent = "Entrar";
-
-      if (error) {
-        showNotice(friendlyError(error), "error");
-        return;
-      }
-
-      await refreshAuth(data.user);
-      elements.loginForm.reset();
-      elements.loginDialog.close();
-      showNotice(canEdit ? "Edição liberada." : "Conta conectada, mas sem permissão de edição.", canEdit ? "success" : "error");
+      if (!groups.length) { const p = document.createElement("p"); p.className = "helper"; p.textContent = "Cadastre o primeiro grupo abaixo."; wrap.append(p); }
     }
 
-    function updateView() {
-      const calendarMode = state.visualizacao === "calendar";
-      elements.calendarView.hidden = !calendarMode;
-      elements.listView.hidden = calendarMode;
-      document.querySelectorAll("[data-view]").forEach(button => {
-        button.setAttribute("aria-pressed", String(button.dataset.view === state.visualizacao));
-      });
+    function resetGroupForm() { $("groupForm").reset(); $("groupId").value = ""; $("groupColor").value = "#c8de45"; $("cancelGroupEdit").classList.add("hidden"); }
+
+    async function saveGroup(event) {
+      event.preventDefault(); if (!isAdmin) return;
+      const button = event.submitter; setBusy(button, true);
+      const id = $("groupId").value || randomId(); const leaderEmail = $("groupLeader").value.trim().toLowerCase();
+      const payload = { id, nome: $("groupName").value.trim(), descricao: $("groupDescription").value.trim(), cor: $("groupColor").value, updated_at: new Date().toISOString() };
+      try {
+        const result = $("groupId").value ? await client.from("baja_groups").update(payload).eq("id", id) : await client.from("baja_groups").insert(payload);
+        if (result.error) throw result.error;
+        const { error: deleteError } = await client.from("baja_group_leaders").delete().eq("group_id", id); if (deleteError) throw deleteError;
+        if (leaderEmail) { const { error: leaderError } = await client.from("baja_group_leaders").insert({ group_id: id, email: leaderEmail }); if (leaderError) throw leaderError; }
+        toast("Grupo salvo com sucesso."); resetGroupForm(); await loadAll(true); await renderManageGroups();
+      } catch (error) { toast(`Não foi possível salvar o grupo: ${error.message}`, true); }
+      finally { setBusy(button, false); }
     }
 
-    function updateSummary() {
-      const today = new Date();
-      elements.todayLabel.textContent = dataCompleta.format(today);
-      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const nextEvent = [...EVENTOS]
-        .sort((a, b) => a.data.localeCompare(b.data))
-        .find(event => parseDate(event.data) >= todayStart);
-      elements.nextEventLabel.textContent = nextEvent
-        ? `${dataCurta.format(parseDate(nextEvent.data))} • ${nextEvent.titulo}`
-        : "Nenhum compromisso futuro cadastrado";
+    function subscribeRealtime() {
+      if (!client) return;
+      if (realtimeChannel) client.removeChannel(realtimeChannel);
+      realtimeChannel = client.channel("baja-planejamento").on("postgres_changes", { event: "*", schema: "public", table: "baja_groups" }, () => loadAll(true)).on("postgres_changes", { event: "*", schema: "public", table: "baja_events" }, () => loadAll(true)).on("postgres_changes", { event: "*", schema: "public", table: "baja_event_files" }, () => loadAll(true)).subscribe();
     }
 
-    function render() {
-      const month = CONFIG.meses[state.posicaoMes];
-      const currentMonth = new Date(CONFIG.ano, month, 1);
-      const count = eventsForMonth().length;
-      elements.monthTitle.textContent = mesesLongos.format(currentMonth);
-      elements.monthCount.textContent = `${count} compromisso${count === 1 ? "" : "s"} nesta visualização`;
-      elements.prevMonth.disabled = state.posicaoMes === 0;
-      elements.nextMonth.disabled = state.posicaoMes === CONFIG.meses.length - 1;
-      renderCalendar();
-      renderList();
-      updateView();
-    }
+    $("prevMonth").addEventListener("click", () => { currentMonth = clampMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)); renderCalendar(); renderAgenda(); });
+    $("nextMonth").addEventListener("click", () => { currentMonth = clampMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)); renderCalendar(); renderAgenda(); });
+    $("todayBtn").addEventListener("click", () => { currentMonth = clampMonth(new Date()); renderCalendar(); renderAgenda(); });
+    document.querySelectorAll(".view-switch button").forEach(button => button.addEventListener("click", () => { currentView = button.dataset.view; document.querySelectorAll(".view-switch button").forEach(b => b.classList.toggle("active", b === button)); $("calendarView").classList.toggle("hidden", currentView !== "calendar"); $("agendaView").classList.toggle("hidden", currentView !== "agenda"); }));
+    ["searchInput", "groupFilter", "stageFilter", "statusFilter"].forEach(id => $(id).addEventListener(id === "searchInput" ? "input" : "change", () => { renderCalendar(); renderAgenda(); }));
+    $("clearFilters").addEventListener("click", () => { $("searchInput").value = ""; $("groupFilter").value = ""; $("stageFilter").value = ""; $("statusFilter").value = ""; renderCalendar(); renderAgenda(); });
+    $("newEventBtn").addEventListener("click", () => openEventEditor());
+    $("groupsBtn").addEventListener("click", openGroupsManager);
+    $("eventForm").addEventListener("submit", saveEvent);
+    $("deleteEventBtn").addEventListener("click", deleteEvent);
+    $("groupForm").addEventListener("submit", saveGroup);
+    $("cancelGroupEdit").addEventListener("click", resetGroupForm);
+    $("editFromDetailBtn").addEventListener("click", () => { const event = events.find(item => item.id === detailEventId); closeModal("detailModal"); if (event) openEventEditor(event); });
+    $("eventFiles").addEventListener("change", event => { const chosen = [...event.target.files]; const existingCount = files.filter(file => file.event_id === $("eventId").value && !removedExistingFiles.some(r => r.id === file.id)).length; const error = validatePendingFiles(chosen, existingCount); if (error) toast(error, true); else pendingUploads.push(...chosen); event.target.value = ""; renderPendingFiles(); });
+    $("loginBtn").addEventListener("click", async () => { if (user && client) { await client.auth.signOut(); toast("Você saiu do modo de edição."); } else openModal("loginModal"); });
+    $("loginForm").addEventListener("submit", async event => { event.preventDefault(); if (!client) { toast("Primeiro conecte o Supabase no final do arquivo.", true); return; } const button = event.submitter; setBusy(button, true, "Entrando..."); const { error } = await client.auth.signInWithPassword({ email: $("loginEmail").value.trim(), password: $("loginPassword").value }); setBusy(button, false); if (error) toast("E-mail ou senha inválidos.", true); else { closeModal("loginModal"); $("loginForm").reset(); toast("Acesso liberado."); } });
+    document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => closeModal(button.dataset.close)));
+    document.querySelectorAll(".modal").forEach(modal => modal.addEventListener("mousedown", event => { if (event.target === modal) closeModal(modal.id); }));
+    document.addEventListener("keydown", event => { if (event.key === "Escape") { const open = [...document.querySelectorAll(".modal")].reverse().find(modal => !modal.classList.contains("hidden")); if (open) closeModal(open.id); } });
 
-    elements.prevMonth.addEventListener("click", () => {
-      if (state.posicaoMes > 0) {
-        state.posicaoMes -= 1;
-        render();
-      }
-    });
-
-    elements.nextMonth.addEventListener("click", () => {
-      if (state.posicaoMes < CONFIG.meses.length - 1) {
-        state.posicaoMes += 1;
-        render();
-      }
-    });
-
-    document.querySelectorAll("[data-view]").forEach(button => {
-      button.addEventListener("click", () => {
-        state.visualizacao = button.dataset.view;
-        updateView();
-      });
-    });
-
-    elements.closeDialog.addEventListener("click", () => elements.eventDialog.close());
-    elements.eventDialog.addEventListener("click", event => {
-      if (event.target === elements.eventDialog) elements.eventDialog.close();
-    });
-
-    document.querySelectorAll("[data-close-dialog]").forEach(button => {
-      button.addEventListener("click", () => document.querySelector(`#${button.dataset.closeDialog}`).close());
-    });
-
-    [elements.loginDialog, elements.editorDialog].forEach(dialog => {
-      dialog.addEventListener("click", event => {
-        if (event.target === dialog) dialog.close();
-      });
-    });
-
-    elements.loginButton.addEventListener("click", () => elements.loginDialog.showModal());
-    elements.logoutButton.addEventListener("click", async () => {
-      await supabaseClient.auth.signOut();
-      await refreshAuth(null);
-      showNotice("Você saiu da área de edição.");
-    });
-    elements.newEventButton.addEventListener("click", () => openEditor());
-    elements.editEventButton.addEventListener("click", () => {
-      const event = EVENTOS.find(item => item.id === selectedEventId);
-      elements.eventDialog.close();
-      if (event) openEditor(event);
-    });
-    elements.deleteEventButton.addEventListener("click", deleteSelectedEvent);
-    elements.loginForm.addEventListener("submit", login);
-    elements.eventForm.addEventListener("submit", saveEvent);
-
-    supabaseClient.auth.onAuthStateChange((_event, session) => {
-      window.setTimeout(() => refreshAuth(session?.user || null), 0);
-    });
-
-    supabaseClient
-      .channel("calendar-events-live")
-      .on("postgres_changes", { event: "*", schema: "public", table: "calendar_events" }, () => loadEvents({ quiet: true }))
-      .on("postgres_changes", { event: "*", schema: "public", table: "calendar_event_files" }, () => loadEvents({ quiet: true }))
-      .subscribe();
-
-    createFilters();
-    createLegend();
-    render();
-    supabaseClient.auth.getSession().then(({ data }) => refreshAuth(data.session?.user || null));
-    loadEvents();
+    (async function init() { renderAll(); await loadAuth(); await loadAll(true); subscribeRealtime(); })();
   </script>
 </body>
 </html>
