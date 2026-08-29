@@ -178,6 +178,8 @@
     .day-number { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; font-size: 12px; font-weight: 830; }
     .today .day-number { color: white; background: #07477f; }
     .day-add { border: 0; color: var(--forest); background: transparent; font-weight: 900; opacity: 0; padding: 2px 4px; }
+    /* A inclusão de atividades fica concentrada no botão “+ Nova atividade”. */
+    .day-add { display: none !important; }
     .day:hover .day-add, .day-add:focus { opacity: 1; }
     .event-chip {
       width: 100%;
