@@ -122,6 +122,31 @@
       line-height: 1.5;
     }
 
+    .access-gate {
+      width: min(760px, 100%);
+      margin: 48px auto 0;
+      padding: clamp(28px, 6vw, 54px);
+      text-align: center;
+      background: rgba(255, 255, 255, .94);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+    }
+    .access-gate-icon {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 18px;
+      border-radius: 18px;
+      color: white;
+      background: var(--forest);
+      font-size: 27px;
+    }
+    .access-gate h2 { margin: 0; font-size: clamp(27px, 5vw, 40px); letter-spacing: -.04em; }
+    .access-gate p { max-width: 570px; margin: 13px auto 22px; color: var(--muted); line-height: 1.65; }
+    .access-gate-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 9px; }
+
     .summary-grid {
       display: grid;
       grid-template-columns: 1.1fr 1fr 1fr;
@@ -319,6 +344,7 @@
       .subtitle { display: none; }
       .top-actions { justify-content: stretch; }
       .top-actions .btn { flex: 1; }
+      .access-gate { margin-top: 22px; border-radius: 20px; }
       .summary-grid { grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
       .summary-card { padding: 11px; border-radius: 13px; }
       .summary-grid .summary-card:first-child { grid-column: 1 / -1; }
@@ -377,6 +403,7 @@
       <div class="top-actions">
         <button class="btn btn-secondary hidden" id="groupsBtn" type="button">Grupos</button>
         <button class="btn btn-primary hidden" id="newEventBtn" type="button">+ Nova atividade</button>
+        <button class="btn btn-secondary hidden" id="refreshBtn" type="button">Atualizar</button>
         <button class="btn btn-secondary" id="loginBtn" type="button">Entrar</button>
       </div>
     </header>
@@ -384,6 +411,19 @@
     <div class="config-warning hidden" id="configWarning">
       <strong>Falta conectar este arquivo ao novo Supabase.</strong> No final do <code>index.html</code>, troque os dois textos <code>COLE_AQUI...</code> pela URL e pela chave publicável do projeto Baja.
     </div>
+
+    <section class="access-gate" id="accessGate" aria-labelledby="accessGateTitle">
+      <div class="access-gate-icon" aria-hidden="true">🔒</div>
+      <p class="eyebrow">Área interna Baja UMC</p>
+      <h2 id="accessGateTitle">Entre para consultar o cronograma</h2>
+      <p id="accessGateText">O planejamento e seus anexos são reservados aos membros, líderes e administradores da equipe.</p>
+      <div class="access-gate-actions">
+        <button class="btn btn-primary" id="accessLoginBtn" type="button">Entrar com minha conta</button>
+        <a class="btn btn-light" href="https://baja-umc.equipe-baja-umc.workers.dev/portal">Voltar ao portal</a>
+      </div>
+    </section>
+
+    <div class="hidden" id="planningContent">
 
     <section class="summary-grid" aria-label="Resumo do planejamento">
       <article class="summary-card">
@@ -458,18 +498,19 @@
         </section>
       </aside>
     </div>
+    </div>
   </main>
 
   <div class="status" id="toast" role="status" aria-live="polite"></div>
 
   <div class="modal hidden" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
     <div class="modal-card">
-      <div class="modal-head"><div><h2 id="loginTitle">Acesso dos líderes</h2><p>Entre com o usuário criado no Supabase.</p></div><button class="close" data-close="loginModal" type="button" aria-label="Fechar">×</button></div>
+      <div class="modal-head"><div><h2 id="loginTitle">Acesso da equipe</h2><p>Use a mesma conta do portal Baja UMC.</p></div><button class="close" data-close="loginModal" type="button" aria-label="Fechar">×</button></div>
       <form id="loginForm">
         <div class="modal-body">
           <div class="field"><label for="loginEmail">E-mail</label><input id="loginEmail" type="email" autocomplete="email" required></div>
           <div class="field"><label for="loginPassword">Senha</label><input id="loginPassword" type="password" autocomplete="current-password" minlength="6" required></div>
-          <p class="helper">A consulta do calendário é pública. O login serve somente para os líderes e o coordenador editarem.</p>
+          <p class="helper">Membros consultam o planejamento; líderes e administradores também podem editar o que estiver sob sua responsabilidade.</p>
         </div>
         <div class="modal-actions"><button class="btn btn-primary" type="submit">Entrar</button></div>
       </form>
@@ -573,12 +614,14 @@
     let groups = [];
     let files = [];
     let user = null;
+    let hasTeamAccess = false;
+    let profileRole = null;
+    let profileArea = null;
     let isAdmin = false;
     let leaderGroupIds = new Set();
     let pendingUploads = [];
     let removedExistingFiles = [];
     let detailEventId = null;
-    let realtimeChannel = null;
     let currentView = "calendar";
 
     // Compatibilidade com versões mais antigas do Safari/iOS.
@@ -637,8 +680,16 @@
     function closeModal(id) { $(id).classList.add("hidden"); if (![...document.querySelectorAll(".modal")].some(m => !m.classList.contains("hidden"))) document.body.style.overflow = ""; }
     function setBusy(button, busy, text = "Salvando...") { if (!button.dataset.original) button.dataset.original = button.textContent; button.disabled = busy; button.textContent = busy ? text : button.dataset.original; }
 
+    function clearPlanningData() {
+      events = [];
+      groups = [];
+      files = [];
+      pendingUploads = [];
+      removedExistingFiles = [];
+    }
+
     async function loadAll(silent = false) {
-      if (!client) { renderAll(); return; }
+      if (!client || !user || !hasTeamAccess) { clearPlanningData(); renderAll(); return; }
       if (!silent) toast("Carregando planejamento...");
       const [groupResult, eventResult, fileResult] = await Promise.all([
         client.from("baja_groups").select("*").eq("ativo", true).order("nome"),
@@ -650,39 +701,75 @@
       groups = groupResult.data || [];
       events = eventResult.data || [];
       files = fileResult.data || [];
+      if (files.length) {
+        const { data: signedFiles, error: signedError } = await client.storage.from(BUCKET).createSignedUrls(files.map(file => file.storage_path), 3600);
+        if (signedError) toast("O cronograma abriu, mas um ou mais anexos estão temporariamente indisponíveis.", true);
+        const signedByPath = new Map((signedFiles || []).map(item => [item.path, item.signedUrl]));
+        files = files.map(file => ({ ...file, signed_url: signedByPath.get(file.storage_path) || null }));
+      }
+      if (profileRole === "leader" && profileArea) {
+        groups.filter(group => group.nome.localeCompare(profileArea, "pt-BR", { sensitivity: "base" }) === 0).forEach(group => leaderGroupIds.add(group.id));
+      }
       renderAll();
     }
 
     async function loadAuth() {
       if (!client) { updateAuthUI(); return; }
       const { data } = await client.auth.getSession();
-      user = data.session ? data.session.user : null;
-      await loadPermissions();
-      client.auth.onAuthStateChange(async (_event, session) => {
-        user = session ? session.user : null;
-        await loadPermissions();
-        renderAll();
+      await handleSession(data.session);
+      client.auth.onAuthStateChange((_event, session) => {
+        window.setTimeout(() => handleSession(session), 0);
       });
     }
 
+    async function handleSession(session) {
+      user = session ? session.user : null;
+      await loadPermissions();
+      if (hasTeamAccess) await loadAll(true);
+      else { clearPlanningData(); renderAll(); }
+    }
+
     async function loadPermissions() {
+      hasTeamAccess = false;
+      profileRole = null;
+      profileArea = null;
       isAdmin = false;
       leaderGroupIds = new Set();
       if (!client || !user) { updateAuthUI(); return; }
       const email = (user.email || "").toLowerCase();
+      const { data: profile, error: profileError } = await client.from("profiles").select("role,area").eq("id", user.id).maybeSingle();
+      if (profileError || !profile || !["member", "leader", "admin"].includes(profile.role)) {
+        updateAuthUI();
+        return;
+      }
+      hasTeamAccess = true;
+      profileRole = profile.role;
+      profileArea = profile.area || null;
       const [adminResult, leaderResult] = await Promise.all([
         client.from("baja_admins").select("email").eq("email", email).maybeSingle(),
         client.from("baja_group_leaders").select("group_id,email")
       ]);
-      isAdmin = !!adminResult.data;
+      isAdmin = profileRole === "admin" || !!adminResult.data;
       if (!leaderResult.error) leaderGroupIds = new Set((leaderResult.data || []).filter(row => isAdmin || row.email === email).map(row => row.group_id));
       updateAuthUI();
     }
 
     function updateAuthUI() {
       $("loginBtn").textContent = user ? "Sair" : "Entrar";
+      $("accessGate").classList.toggle("hidden", hasTeamAccess);
+      $("planningContent").classList.toggle("hidden", !hasTeamAccess);
+      $("refreshBtn").classList.toggle("hidden", !hasTeamAccess);
       $("groupsBtn").classList.toggle("hidden", !isAdmin);
-      $("newEventBtn").classList.toggle("hidden", !user || (!isAdmin && leaderGroupIds.size === 0));
+      $("newEventBtn").classList.toggle("hidden", !hasTeamAccess || (!isAdmin && leaderGroupIds.size === 0 && profileRole !== "leader"));
+      if (user && !hasTeamAccess) {
+        $("accessGateTitle").textContent = "Esta conta não faz parte da equipe";
+        $("accessGateText").textContent = "O cronograma é reservado aos membros, líderes e administradores cadastrados no portal Baja UMC.";
+        $("accessLoginBtn").textContent = "Trocar de conta";
+      } else {
+        $("accessGateTitle").textContent = "Entre para consultar o cronograma";
+        $("accessGateText").textContent = "O planejamento e seus anexos são reservados aos membros, líderes e administradores da equipe.";
+        $("accessLoginBtn").textContent = "Entrar com minha conta";
+      }
     }
 
     function getFilteredEvents(monthOnly = true) {
@@ -816,7 +903,11 @@
       eventFiles.forEach(file => {
         const row = document.createElement("div"); row.className = "attachment";
         const name = document.createElement("span"); name.className = "attachment-name"; name.textContent = `${file.nome} · ${humanSize(file.tamanho_bytes)}`;
-        const link = document.createElement("a"); link.className = "btn btn-light btn-small"; link.textContent = "Abrir"; link.target = "_blank"; link.rel = "noopener noreferrer"; link.href = client.storage.from(BUCKET).getPublicUrl(file.storage_path).data.publicUrl;
+        const link = file.signed_url ? document.createElement("a") : document.createElement("span");
+        link.className = "btn btn-light btn-small";
+        link.textContent = file.signed_url ? "Abrir" : "Indisponível";
+        if (file.signed_url) { link.target = "_blank"; link.rel = "noopener noreferrer"; link.href = file.signed_url; }
+        else link.setAttribute("aria-disabled", "true");
         row.append(name, link); attachmentWrap.append(row);
       });
       $("detailAttachmentsWrap").classList.toggle("hidden", eventFiles.length === 0);
@@ -961,12 +1052,6 @@
       finally { setBusy(button, false); }
     }
 
-    function subscribeRealtime() {
-      if (!client) return;
-      if (realtimeChannel) client.removeChannel(realtimeChannel);
-      realtimeChannel = client.channel("baja-planejamento").on("postgres_changes", { event: "*", schema: "public", table: "baja_groups" }, () => loadAll(true)).on("postgres_changes", { event: "*", schema: "public", table: "baja_events" }, () => loadAll(true)).on("postgres_changes", { event: "*", schema: "public", table: "baja_event_files" }, () => loadAll(true)).subscribe();
-    }
-
     $("prevMonth").addEventListener("click", () => { currentMonth = clampMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)); renderCalendar(); renderAgenda(); });
     $("nextMonth").addEventListener("click", () => { currentMonth = clampMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)); renderCalendar(); renderAgenda(); });
     $("todayBtn").addEventListener("click", () => { currentMonth = clampMonth(new Date()); renderCalendar(); renderAgenda(); });
@@ -974,6 +1059,7 @@
     ["searchInput", "groupFilter", "stageFilter", "statusFilter"].forEach(id => $(id).addEventListener(id === "searchInput" ? "input" : "change", () => { renderCalendar(); renderAgenda(); }));
     $("clearFilters").addEventListener("click", () => { $("searchInput").value = ""; $("groupFilter").value = ""; $("stageFilter").value = ""; $("statusFilter").value = ""; renderCalendar(); renderAgenda(); });
     $("newEventBtn").addEventListener("click", () => openEventEditor());
+    $("refreshBtn").addEventListener("click", () => loadAll(false));
     $("groupsBtn").addEventListener("click", openGroupsManager);
     $("eventForm").addEventListener("submit", saveEvent);
     $("deleteEventBtn").addEventListener("click", deleteEvent);
@@ -981,13 +1067,14 @@
     $("cancelGroupEdit").addEventListener("click", resetGroupForm);
     $("editFromDetailBtn").addEventListener("click", () => { const event = events.find(item => item.id === detailEventId); closeModal("detailModal"); if (event) openEventEditor(event); });
     $("eventFiles").addEventListener("change", event => { const chosen = [...event.target.files]; const existingCount = files.filter(file => file.event_id === $("eventId").value && !removedExistingFiles.some(r => r.id === file.id)).length; const error = validatePendingFiles(chosen, existingCount); if (error) toast(error, true); else pendingUploads.push(...chosen); event.target.value = ""; renderPendingFiles(); });
-    $("loginBtn").addEventListener("click", async () => { if (user && client) { await client.auth.signOut(); toast("Você saiu do modo de edição."); } else openModal("loginModal"); });
+    $("loginBtn").addEventListener("click", async () => { if (user && client) { await client.auth.signOut(); toast("Você saiu do cronograma."); } else openModal("loginModal"); });
+    $("accessLoginBtn").addEventListener("click", async () => { if (user && client) await client.auth.signOut(); openModal("loginModal"); });
     $("loginForm").addEventListener("submit", async event => { event.preventDefault(); if (!client) { toast("Primeiro conecte o Supabase no final do arquivo.", true); return; } const button = event.submitter; setBusy(button, true, "Entrando..."); const { error } = await client.auth.signInWithPassword({ email: $("loginEmail").value.trim(), password: $("loginPassword").value }); setBusy(button, false); if (error) toast("E-mail ou senha inválidos.", true); else { closeModal("loginModal"); $("loginForm").reset(); toast("Acesso liberado."); } });
     document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => closeModal(button.dataset.close)));
     document.querySelectorAll(".modal").forEach(modal => modal.addEventListener("mousedown", event => { if (event.target === modal) closeModal(modal.id); }));
     document.addEventListener("keydown", event => { if (event.key === "Escape") { const open = [...document.querySelectorAll(".modal")].reverse().find(modal => !modal.classList.contains("hidden")); if (open) closeModal(open.id); } });
 
-    (async function init() { renderAll(); await loadAuth(); await loadAll(true); subscribeRealtime(); })();
+    (async function init() { renderAll(); await loadAuth(); })();
   </script>
 </body>
 </html>
