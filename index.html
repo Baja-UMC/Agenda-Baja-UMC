@@ -715,11 +715,33 @@
 
     async function loadAuth() {
       if (!client) { updateAuthUI(); return; }
+      await importPortalSession();
       const { data } = await client.auth.getSession();
       await handleSession(data.session);
       client.auth.onAuthStateChange((_event, session) => {
         window.setTimeout(() => handleSession(session), 0);
       });
+    }
+
+    async function importPortalSession() {
+      const hash = new URLSearchParams(window.location.hash.slice(1));
+      const hasPortalTransfer = hash.has("portal_access_token") || hash.has("portal_refresh_token");
+      if (!hasPortalTransfer) return;
+
+      const accessToken = hash.get("portal_access_token");
+      const refreshToken = hash.get("portal_refresh_token");
+      window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
+
+      if (!accessToken || !refreshToken) {
+        toast("Não foi possível reaproveitar o acesso do portal. Entre novamente.", true);
+        return;
+      }
+
+      const { error } = await client.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      });
+      if (error) toast("Seu acesso do portal expirou. Entre novamente.", true);
     }
 
     async function handleSession(session) {
