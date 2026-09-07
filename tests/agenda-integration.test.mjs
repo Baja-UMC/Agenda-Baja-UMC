@@ -25,6 +25,16 @@ test("saves calendar activities with multiple assignees", () => {
   assert.match(html, /Responsáveis/);
 });
 
+test("imports the portal session through a short-lived one-time code", () => {
+  assert.match(html, /portal-session-transfer/);
+  assert.match(html, /portal_code/);
+  assert.match(html, /history\.replaceState/);
+  assert.match(html, /credentials:\s*"omit"/);
+  assert.match(html, /cache:\s*"no-store"/);
+  assert.doesNotMatch(html, /portal_access_token/);
+  assert.doesNotMatch(html, /portal_refresh_token/);
+});
+
 test("provides the seven-column private notes table and CRUD", () => {
   for (const heading of ["Descrição", "Área", "Data", "Prazo", "Prioridade", "Status", "Observações"]) {
     assert.match(html, new RegExp(`<th>${heading}</th>`));
