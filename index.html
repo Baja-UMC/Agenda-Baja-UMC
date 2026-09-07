@@ -165,6 +165,21 @@
     .summary-value { margin: 0; font-size: 16px; font-weight: 830; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .summary-note { margin: 4px 0 0; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+    .section-switch {
+      display: flex;
+      width: fit-content;
+      max-width: 100%;
+      gap: 5px;
+      margin: 0 0 14px;
+      padding: 5px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: rgba(255, 255, 255, .9);
+      box-shadow: 0 9px 22px rgba(8, 52, 91, .06);
+    }
+    .section-switch button { min-height: 40px; border: 0; border-radius: 11px; padding: 8px 16px; color: var(--muted); background: transparent; font-weight: 800; }
+    .section-switch button.active { color: white; background: var(--forest); }
+
     .workspace {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 320px;
@@ -277,6 +292,29 @@
     .legend-item small { margin-left: auto; color: var(--muted); }
     .empty { padding: 38px 20px; color: var(--muted); text-align: center; }
 
+    .assignee-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; max-height: 210px; overflow-y: auto; padding: 8px; border: 1px solid #d4ddd8; border-radius: 12px; background: #fbfdfe; }
+    .assignee-option { display: flex; min-width: 0; align-items: center; gap: 8px; margin: 0; padding: 8px; border-radius: 9px; color: var(--ink); font-size: 13px; font-weight: 700; text-transform: none; letter-spacing: 0; cursor: pointer; }
+    .assignee-option:hover { background: #eaf3f8; }
+    .assignee-option input { width: 18px; min-height: 18px; flex: 0 0 auto; margin: 0; padding: 0; }
+    .assignee-option span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .notes-panel { overflow: hidden; }
+    .notes-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 17px; border-bottom: 1px solid var(--line); }
+    .notes-toolbar h2 { margin: 0; font-size: clamp(19px, 3vw, 27px); letter-spacing: -.025em; }
+    .notes-toolbar p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .notes-table-wrap { width: 100%; overflow-x: auto; }
+    .notes-table { width: 100%; min-width: 1040px; border-collapse: collapse; }
+    .notes-table th { padding: 12px; color: var(--muted); background: #f4f7f9; text-align: left; text-transform: uppercase; font-size: 10px; letter-spacing: .07em; }
+    .notes-table td { max-width: 260px; padding: 13px 12px; border-top: 1px solid var(--line); vertical-align: top; color: #31485a; font-size: 13px; line-height: 1.45; }
+    .notes-table td:last-child { white-space: pre-wrap; overflow-wrap: anywhere; }
+    .note-title { max-width: 230px; border: 0; padding: 0; color: var(--forest); background: transparent; text-align: left; font-weight: 820; }
+    .note-date { display: block; white-space: nowrap; }
+    .note-state { display: inline-flex; margin-top: 5px; border-radius: 999px; padding: 3px 7px; color: #38576c; background: #e9f1f6; font-size: 10px; font-weight: 820; }
+    .note-state.overdue { color: #9b2f2f; background: #fde9e8; }
+    .priority-low { color: #4e6d5b; }
+    .priority-medium { color: #8a641b; }
+    .priority-critical { color: #a83232; font-weight: 850; }
+
     .status { position: fixed; left: 50%; bottom: 18px; z-index: 100; transform: translate(-50%, 30px); opacity: 0; pointer-events: none; max-width: min(90vw, 540px); padding: 11px 16px; border-radius: 12px; color: white; background: #092f58; box-shadow: var(--shadow); font-weight: 750; transition: .2s ease; }
     .status.show { transform: translate(-50%, 0); opacity: 1; }
     .status.error { background: var(--danger); }
@@ -379,6 +417,18 @@
       .agenda-day { grid-template-columns: 61px minmax(0, 1fr); }
       .agenda-event { grid-template-columns: 6px minmax(0, 1fr); }
       .agenda-event > small { grid-column: 2; }
+      .section-switch { width: 100%; }
+      .section-switch button { flex: 1; padding-right: 8px; padding-left: 8px; }
+      .assignee-options { grid-template-columns: 1fr; }
+      .notes-toolbar { align-items: stretch; flex-direction: column; }
+      .notes-table-wrap { overflow: visible; padding: 8px; }
+      .notes-table, .notes-table tbody, .notes-table tr, .notes-table td { display: block; width: 100%; min-width: 0; }
+      .notes-table thead { display: none; }
+      .notes-table tr { margin-bottom: 10px; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: white; }
+      .notes-table td { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 9px; max-width: none; padding: 9px 11px; border-top: 1px solid #edf1f4; }
+      .notes-table td:first-child { border-top: 0; }
+      .notes-table td::before { content: attr(data-label); color: var(--muted); text-transform: uppercase; font-size: 9px; font-weight: 850; letter-spacing: .06em; }
+      .note-title { max-width: none; }
     }
   </style>
 </head>
@@ -401,8 +451,8 @@
         </div>
       </div>
       <div class="top-actions">
-        <button class="btn btn-secondary hidden" id="groupsBtn" type="button">Grupos</button>
         <button class="btn btn-primary hidden" id="newEventBtn" type="button">+ Nova atividade</button>
+        <button class="btn btn-primary hidden" id="newNoteBtn" type="button">+ Nova anotação</button>
         <button class="btn btn-secondary hidden" id="refreshBtn" type="button">Atualizar</button>
         <button class="btn btn-secondary" id="loginBtn" type="button">Entrar</button>
       </div>
@@ -419,7 +469,7 @@
       <p id="accessGateText">O planejamento e seus anexos são reservados aos membros, líderes e administradores da equipe.</p>
       <div class="access-gate-actions">
         <button class="btn btn-primary" id="accessLoginBtn" type="button">Entrar com minha conta</button>
-        <a class="btn btn-light" href="https://baja-umc.equipe-baja-umc.workers.dev/portal">Voltar ao portal</a>
+        <a class="btn btn-light" href="https://baja-umc.miguelviolinista753.chatgpt.site/portal/">Voltar ao portal</a>
       </div>
     </section>
 
@@ -432,8 +482,8 @@
         <p class="summary-note" id="nextEventNote">O cronograma está livre.</p>
       </article>
       <article class="summary-card">
-        <p class="summary-label">Grupos ativos</p>
-        <p class="summary-value" id="activeGroupsValue">0 grupos</p>
+        <p class="summary-label">Áreas ativas</p>
+        <p class="summary-value" id="activeGroupsValue">0 áreas</p>
         <p class="summary-note">Planejamento compartilhado</p>
       </article>
       <article class="summary-card">
@@ -443,7 +493,12 @@
       </article>
     </section>
 
-    <div class="workspace">
+    <nav class="section-switch" aria-label="Seções do planejamento">
+      <button class="active" type="button" data-section="schedule">Cronograma da equipe</button>
+      <button type="button" data-section="notes">Minhas anotações</button>
+    </nav>
+
+    <div class="workspace" id="scheduleWorkspace">
       <section class="panel calendar-panel" aria-label="Calendário do Baja UMC">
         <div class="calendar-toolbar">
           <div class="month-nav">
@@ -474,8 +529,8 @@
             <input class="search" id="searchInput" type="search" placeholder="Título, local ou detalhes">
           </div>
           <div class="field">
-            <label for="groupFilter">Grupo</label>
-            <select id="groupFilter"><option value="">Todos os grupos</option></select>
+            <label for="groupFilter">Área</label>
+            <select id="groupFilter"><option value="">Todas as áreas</option></select>
           </div>
           <div class="field">
             <label for="stageFilter">Etapa</label>
@@ -493,11 +548,25 @@
           <button class="btn btn-light btn-small" id="clearFilters" type="button">Limpar filtros</button>
         </section>
         <section class="panel legend-panel">
-          <h2 class="panel-title">Grupos</h2>
-          <div class="legend-list" id="groupLegend"><p class="helper">Nenhum grupo cadastrado.</p></div>
+          <h2 class="panel-title">Áreas do projeto</h2>
+          <div class="legend-list" id="groupLegend"><p class="helper">Nenhuma área cadastrada.</p></div>
         </section>
       </aside>
     </div>
+
+    <section class="panel notes-panel hidden" id="notesWorkspace" aria-labelledby="notesTitle">
+      <div class="notes-toolbar">
+        <div><h2 id="notesTitle">Minhas anotações</h2><p>Esta lista é pessoal e somente você pode consultá-la ou alterá-la.</p></div>
+        <button class="btn btn-primary" id="notesAddBtn" type="button">+ Nova anotação</button>
+      </div>
+      <div class="notes-table-wrap">
+        <table class="notes-table">
+          <thead><tr><th>Descrição</th><th>Área</th><th>Data</th><th>Prazo</th><th>Prioridade</th><th>Status</th><th>Observações</th></tr></thead>
+          <tbody id="notesTableBody"></tbody>
+        </table>
+        <p class="empty hidden" id="notesEmpty">Você ainda não criou nenhuma anotação.</p>
+      </div>
+    </section>
     </div>
   </main>
 
@@ -525,12 +594,13 @@
           <input id="eventId" type="hidden">
           <div class="form-grid">
             <div class="field full"><label for="eventTitle">Título</label><input id="eventTitle" maxlength="140" required placeholder="Ex.: Apresentação da suspensão"></div>
-            <div class="field"><label for="eventGroup">Grupo responsável</label><select id="eventGroup" required></select></div>
+            <div class="field"><label for="eventGroup">Área responsável</label><select id="eventGroup" required></select></div>
             <div class="field"><label for="eventType">Tipo</label><select id="eventType" required><option value="tarefa">Tarefa</option><option value="reuniao">Reunião</option><option value="entrega">Entrega</option><option value="apresentacao">Apresentação</option><option value="teste">Teste</option><option value="marco">Marco</option><option value="aviso">Aviso</option></select></div>
             <div class="field"><label for="eventDate">Data inicial</label><input id="eventDate" type="date" min="2026-08-01" max="2028-12-31" required></div>
             <div class="field"><label for="eventEndDate">Data final (opcional)</label><input id="eventEndDate" type="date" min="2026-08-01" max="2028-12-31"></div>
             <div class="field"><label for="eventStage">Etapa</label><select id="eventStage"><option value="planejamento">Planejamento</option><option value="projeto">Projeto</option><option value="desenvolvimento">Desenvolvimento</option><option value="fabricacao">Fabricação</option><option value="montagem">Montagem</option><option value="testes">Testes</option><option value="apresentacao">Apresentação</option><option value="competicao">Competição</option><option value="outro">Outro</option></select></div>
             <div class="field"><label for="eventStatus">Andamento</label><select id="eventStatus"><option value="planejado">Planejado</option><option value="em-andamento">Em andamento</option><option value="concluido">Concluído</option><option value="atrasado">Atrasado</option></select></div>
+            <div class="field full"><span class="field-label">Responsáveis</span><div class="assignee-options" id="eventAssignees"></div><p class="helper">Selecione uma ou mais pessoas. A atividade aparecerá para todas elas.</p></div>
             <div class="field full"><label for="eventLocation">Local ou plataforma</label><input id="eventLocation" maxlength="160" placeholder="Ex.: Oficina, Teams ou Campus Villa-Lobos"></div>
             <div class="field full"><label for="eventDetails">Detalhes</label><textarea id="eventDetails" maxlength="3000" placeholder="Organize o texto em linhas. Links começando com https:// ficarão clicáveis."></textarea></div>
             <div class="field full">
@@ -556,6 +626,7 @@
       <div class="modal-head"><div><span class="badge" id="detailBadge">Atividade</span><h2 class="detail-title" id="detailTitle"></h2><p class="detail-group" id="detailGroup"></p></div><button class="close" data-close="detailModal" type="button" aria-label="Fechar">×</button></div>
       <div class="modal-body">
         <div class="detail-grid"><div class="detail-box"><span>Data</span><strong id="detailDate"></strong></div><div class="detail-box"><span>Etapa</span><strong id="detailStage"></strong></div><div class="detail-box"><span>Andamento</span><strong id="detailStatus"></strong></div></div>
+        <div id="detailAssigneesWrap"><p class="field-label">Responsáveis</p><p id="detailAssignees"></p></div>
         <div id="detailLocationWrap"><p class="field-label">Local</p><p id="detailLocation"></p></div>
         <div id="detailTextWrap"><p class="field-label">Detalhes</p><div class="rich-text" id="detailText"></div></div>
         <div id="detailAttachmentsWrap"><p class="field-label">Anexos</p><div class="attachments" id="detailAttachments"></div></div>
@@ -564,23 +635,29 @@
     </div>
   </div>
 
-  <div class="modal hidden" id="groupsModal" role="dialog" aria-modal="true" aria-labelledby="groupsTitle">
+  <div class="modal hidden" id="noteModal" role="dialog" aria-modal="true" aria-labelledby="noteFormTitle">
     <div class="modal-card large">
-      <div class="modal-head"><div><h2 id="groupsTitle">Grupos e líderes</h2><p>Somente o coordenador geral pode alterar esta lista.</p></div><button class="close" data-close="groupsModal" type="button" aria-label="Fechar">×</button></div>
-      <div class="modal-body">
-        <div class="group-list" id="manageGroupList"></div>
-        <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
-        <form id="groupForm">
-          <input id="groupId" type="hidden">
+      <div class="modal-head"><div><h2 id="noteFormTitle">Nova anotação</h2><p>Organize uma tarefa pessoal sem expô-la para o restante da equipe.</p></div><button class="close" data-close="noteModal" type="button" aria-label="Fechar">×</button></div>
+      <form id="noteForm">
+        <div class="modal-body">
+          <input id="noteId" type="hidden">
           <div class="form-grid">
-            <div class="field"><label for="groupName">Nome do grupo</label><input id="groupName" maxlength="80" required placeholder="Ex.: Suspensão"></div>
-            <div class="field"><label for="groupColor">Cor</label><input id="groupColor" type="color" value="#0b4d85"></div>
-            <div class="field full"><label for="groupDescription">Descrição</label><input id="groupDescription" maxlength="500" placeholder="Responsabilidade principal do grupo"></div>
-            <div class="field full"><label for="groupLeader">E-mail do líder</label><input id="groupLeader" type="email" placeholder="lider@exemplo.com"><p class="helper">O mesmo e-mail deverá existir em Authentication → Users no Supabase.</p></div>
+            <div class="field full"><label for="noteDescription">Descrição</label><input id="noteDescription" maxlength="180" required placeholder="Ex.: Revisar desenho da suspensão"></div>
+            <div class="field"><label for="noteArea">Área</label><select id="noteArea" required></select></div>
+            <div class="field"><label for="noteActivityDate">Data</label><input id="noteActivityDate" type="date" required></div>
+            <div class="field"><label for="noteDueDate">Prazo</label><input id="noteDueDate" type="date" required></div>
+            <div class="field"><label for="notePriority">Prioridade</label><select id="notePriority"><option value="low">Baixo</option><option value="medium">Médio</option><option value="critical">Crítico</option></select></div>
+            <div class="field"><label for="noteActivityState">Andamento</label><select id="noteActivityState"><option value="open">Aberto</option><option value="in_progress">Em andamento</option><option value="done">Concluído</option></select></div>
+            <div class="field"><label for="noteDependencyStatus">Status</label><select id="noteDependencyStatus"><option value="pending">Pendente</option><option value="waiting">Aguardando algo</option></select></div>
+            <div class="field full"><label for="noteObservations">Observações</label><textarea id="noteObservations" maxlength="3000" placeholder="Registre detalhes que você não quer esquecer."></textarea></div>
           </div>
-          <div class="modal-actions" style="padding:8px 0 0"><button class="btn btn-light hidden" id="cancelGroupEdit" type="button">Cancelar edição</button><button class="btn btn-primary" type="submit">Salvar grupo</button></div>
-        </form>
-      </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-danger hidden" id="deleteNoteBtn" type="button">Excluir</button>
+          <button class="btn btn-light" data-close="noteModal" type="button">Cancelar</button>
+          <button class="btn btn-primary" id="saveNoteBtn" type="submit">Salvar anotação</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -613,6 +690,8 @@
     let events = [];
     let groups = [];
     let files = [];
+    let profiles = [];
+    let notes = [];
     let user = null;
     let hasTeamAccess = false;
     let profileRole = null;
@@ -623,6 +702,7 @@
     let removedExistingFiles = [];
     let detailEventId = null;
     let currentView = "calendar";
+    let currentSection = "schedule";
 
     // Compatibilidade com versões mais antigas do Safari/iOS.
     if (!Element.prototype.replaceChildren) {
@@ -654,9 +734,18 @@
     function formatDate(value, options = { day: "2-digit", month: "long", year: "numeric" }) { return parseDate(value).toLocaleDateString("pt-BR", options); }
     function humanSize(bytes) { if (bytes < 1024) return `${bytes} B`; if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`; return `${(bytes / 1048576).toFixed(1)} MB`; }
     function eventGroup(event) { return groups.find(group => group.id === event.group_id); }
-    function eventGroupName(event, fallback = "Sem grupo") { const group = eventGroup(event); return group ? group.nome : fallback; }
-    function canEditEvent(event) { return !!user && (isAdmin || leaderGroupIds.has(event.group_id)); }
+    function eventGroupName(event, fallback = "Sem área") { const group = eventGroup(event); return group ? group.nome : fallback; }
+    function canEditEvent(event) { return !!user && event.source === "event" && (isAdmin || leaderGroupIds.has(event.group_id)); }
     function canEditGroup(groupId) { return !!user && (isAdmin || leaderGroupIds.has(groupId)); }
+    function areaColor(value) {
+      const palette = ["#07568f", "#168aa0", "#6c59a7", "#b46a2b", "#39795a", "#a84c62", "#4973b7", "#82652b"];
+      const hash = [...String(value || "")].reduce((sum, char) => (sum * 31 + char.charCodeAt(0)) >>> 0, 7);
+      return palette[hash % palette.length];
+    }
+    function assigneeNames(ids = []) {
+      const names = ids.map(id => profiles.find(profile => profile.id === id)?.full_name).filter(Boolean);
+      return names.length ? names.join(", ") : "Não atribuída";
+    }
     function randomId() { return crypto.randomUUID ? crypto.randomUUID() : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)); }
     function sanitizeFileName(name) { const ext = name.includes(".") ? "." + name.split(".").pop().toLowerCase() : ""; const base = name.replace(/\.[^.]+$/, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "arquivo"; return `${base}${ext}`; }
     function fileContentType(file) {
@@ -684,6 +773,8 @@
       events = [];
       groups = [];
       files = [];
+      profiles = [];
+      notes = [];
       pendingUploads = [];
       removedExistingFiles = [];
     }
@@ -691,15 +782,39 @@
     async function loadAll(silent = false) {
       if (!client || !user || !hasTeamAccess) { clearPlanningData(); renderAll(); return; }
       if (!silent) toast("Carregando planejamento...");
-      const [groupResult, eventResult, fileResult] = await Promise.all([
-        client.from("baja_groups").select("*").eq("ativo", true).order("nome"),
+      const [areaResult, eventResult, fileResult, milestoneResult, announcementResult, eventAssigneeResult, milestoneAssigneeResult, profileResult, noteResult] = await Promise.all([
+        client.from("project_areas").select("id,name,description,sort_order").eq("is_active", true).order("sort_order").order("name"),
         client.from("baja_events").select("*").order("data").order("titulo"),
-        client.from("baja_event_files").select("*").order("created_at")
+        client.from("baja_event_files").select("*").order("created_at"),
+        client.from("milestones").select("id,title,description,area_id,status,start_date,due_date,stage,location,priority").order("due_date").order("title"),
+        client.from("announcements").select("id,title,body,kind,is_published,area_id,calendar_date").eq("is_published", true).not("calendar_date", "is", null).order("calendar_date"),
+        client.from("baja_event_assignees").select("event_id,user_id"),
+        client.from("milestone_assignees").select("milestone_id,user_id"),
+        client.from("profiles").select("id,full_name,area,role").in("role", ["member", "leader", "admin"]).order("full_name"),
+        client.from("personal_notes").select("*").order("due_date").order("created_at")
       ]);
-      const error = groupResult.error || eventResult.error || fileResult.error;
+      const error = areaResult.error || eventResult.error || fileResult.error || milestoneResult.error || announcementResult.error || eventAssigneeResult.error || milestoneAssigneeResult.error || profileResult.error || noteResult.error;
       if (error) { toast(`Não foi possível carregar: ${error.message}`, true); return; }
-      groups = groupResult.data || [];
-      events = eventResult.data || [];
+      groups = (areaResult.data || []).map(area => ({ id: area.id, nome: area.name, descricao: area.description, cor: areaColor(area.id) }));
+      profiles = profileResult.data || [];
+      notes = noteResult.data || [];
+      const eventAssignees = new Map();
+      (eventAssigneeResult.data || []).forEach(row => eventAssignees.set(row.event_id, [...(eventAssignees.get(row.event_id) || []), row.user_id]));
+      const milestoneAssignees = new Map();
+      (milestoneAssigneeResult.data || []).forEach(row => milestoneAssignees.set(row.milestone_id, [...(milestoneAssignees.get(row.milestone_id) || []), row.user_id]));
+      const scheduleEvents = (eventResult.data || []).map(item => ({ ...item, source: "event", source_id: item.id, group_id: item.area_id, assignee_ids: eventAssignees.get(item.id) || [] }));
+      const deliveryEvents = (milestoneResult.data || []).filter(item => item.start_date || item.due_date).map(item => ({
+        id: `milestone:${item.id}`, source: "milestone", source_id: item.id, group_id: item.area_id,
+        data: item.start_date || item.due_date, data_fim: item.due_date || item.start_date, tipo: "entrega", etapa: item.stage || "outro",
+        status: ({ todo: "planejado", in_progress: "em-andamento", blocked: "atrasado", done: "concluido" })[item.status] || "planejado",
+        titulo: item.title, local: item.location || "", detalhes: item.description || "", assignee_ids: milestoneAssignees.get(item.id) || []
+      }));
+      const noticeEvents = (announcementResult.data || []).map(item => ({
+        id: `announcement:${item.id}`, source: "announcement", source_id: item.id, group_id: item.area_id,
+        data: item.calendar_date, data_fim: null, tipo: "aviso", etapa: "outro", status: "planejado",
+        titulo: item.title, local: "", detalhes: item.body || "", assignee_ids: []
+      }));
+      events = [...scheduleEvents, ...deliveryEvents, ...noticeEvents];
       files = fileResult.data || [];
       if (files.length) {
         const { data: signedFiles, error: signedError } = await client.storage.from(BUCKET).createSignedUrls(files.map(file => file.storage_path), 3600);
@@ -707,9 +822,8 @@
         const signedByPath = new Map((signedFiles || []).map(item => [item.path, item.signedUrl]));
         files = files.map(file => ({ ...file, signed_url: signedByPath.get(file.storage_path) || null }));
       }
-      if (profileRole === "leader" && profileArea) {
-        groups.filter(group => group.nome.localeCompare(profileArea, "pt-BR", { sensitivity: "base" }) === 0).forEach(group => leaderGroupIds.add(group.id));
-      }
+      if (isAdmin) groups.forEach(group => leaderGroupIds.add(group.id));
+      else if (profileRole === "leader" && profileArea) groups.filter(group => group.nome.localeCompare(profileArea, "pt-BR", { sensitivity: "base" }) === 0).forEach(group => leaderGroupIds.add(group.id));
       renderAll();
     }
 
@@ -781,8 +895,8 @@
       $("accessGate").classList.toggle("hidden", hasTeamAccess);
       $("planningContent").classList.toggle("hidden", !hasTeamAccess);
       $("refreshBtn").classList.toggle("hidden", !hasTeamAccess);
-      $("groupsBtn").classList.toggle("hidden", !isAdmin);
-      $("newEventBtn").classList.toggle("hidden", !hasTeamAccess || (!isAdmin && leaderGroupIds.size === 0 && profileRole !== "leader"));
+      $("newEventBtn").classList.toggle("hidden", !hasTeamAccess || currentSection !== "schedule" || (!isAdmin && leaderGroupIds.size === 0));
+      $("newNoteBtn").classList.toggle("hidden", !hasTeamAccess || currentSection !== "notes");
       if (user && !hasTeamAccess) {
         $("accessGateTitle").textContent = "Esta conta não faz parte da equipe";
         $("accessGateText").textContent = "O cronograma é reservado aos membros, líderes e administradores cadastrados no portal Baja UMC.";
@@ -816,13 +930,14 @@
       renderSummary();
       renderCalendar();
       renderAgenda();
+      renderNotes();
       updateAuthUI();
     }
 
     function renderGroupChoices() {
       const filter = $("groupFilter");
       const previous = filter.value;
-      filter.replaceChildren(new Option("Todos os grupos", ""));
+      filter.replaceChildren(new Option("Todas as áreas", ""));
       groups.forEach(group => filter.add(new Option(group.nome, group.id)));
       if ([...filter.options].some(option => option.value === previous)) filter.value = previous;
       const eventSelect = $("eventGroup");
@@ -830,12 +945,32 @@
       eventSelect.replaceChildren();
       groups.filter(group => isAdmin || leaderGroupIds.has(group.id)).forEach(group => eventSelect.add(new Option(group.nome, group.id)));
       if ([...eventSelect.options].some(option => option.value === selected)) eventSelect.value = selected;
+      const noteSelect = $("noteArea");
+      const noteSelected = noteSelect.value;
+      noteSelect.replaceChildren();
+      groups.forEach(group => noteSelect.add(new Option(group.nome, group.id)));
+      if ([...noteSelect.options].some(option => option.value === noteSelected)) noteSelect.value = noteSelected;
+      renderAssigneeChoices();
+    }
+
+    function renderAssigneeChoices(selectedIds = null) {
+      const wrap = $("eventAssignees");
+      if (!wrap) return;
+      const preserved = selectedIds || [...wrap.querySelectorAll('input[type="checkbox"]:checked')].map(input => input.value);
+      wrap.replaceChildren();
+      profiles.forEach(profile => {
+        const label = document.createElement("label"); label.className = "assignee-option";
+        const input = document.createElement("input"); input.type = "checkbox"; input.value = profile.id; input.checked = preserved.includes(profile.id);
+        const name = document.createElement("span"); name.textContent = `${profile.full_name || "Sem nome"}${profile.area ? ` · ${profile.area}` : ""}`;
+        label.append(input, name); wrap.append(label);
+      });
+      if (!profiles.length) { const p = document.createElement("p"); p.className = "helper"; p.textContent = "Nenhum membro ativo disponível."; wrap.append(p); }
     }
 
     function renderLegend() {
       const wrap = $("groupLegend");
       wrap.replaceChildren();
-      if (!groups.length) { const p = document.createElement("p"); p.className = "helper"; p.textContent = "Nenhum grupo cadastrado."; wrap.append(p); return; }
+      if (!groups.length) { const p = document.createElement("p"); p.className = "helper"; p.textContent = "Nenhuma área cadastrada."; wrap.append(p); return; }
       groups.forEach(group => {
         const row = document.createElement("div"); row.className = "legend-item";
         const color = document.createElement("span"); color.className = "legend-color"; color.style.setProperty("--legend-color", group.cor);
@@ -850,7 +985,7 @@
       const next = [...events].filter(event => event.data >= today && event.status !== "concluido").sort((a, b) => a.data.localeCompare(b.data))[0];
       $("nextEventValue").textContent = next ? next.titulo : "Nenhuma cadastrada";
       $("nextEventNote").textContent = next ? `${formatDate(next.data, { day: "2-digit", month: "short" })} · ${eventGroupName(next)}` : "O cronograma está livre.";
-      $("activeGroupsValue").textContent = `${groups.length} ${groups.length === 1 ? "grupo" : "grupos"}`;
+      $("activeGroupsValue").textContent = `${groups.length} ${groups.length === 1 ? "área" : "áreas"}`;
     }
 
     function renderCalendar() {
@@ -912,15 +1047,17 @@
       detailEventId = id;
       $("detailBadge").textContent = labels[event.tipo] || event.tipo;
       $("detailTitle").textContent = event.titulo;
-      $("detailGroup").textContent = eventGroupName(event, "Grupo não encontrado");
+      $("detailGroup").textContent = eventGroupName(event, "Área não encontrada");
       $("detailDate").textContent = event.data_fim ? `${formatDate(event.data)} até ${formatDate(event.data_fim)}` : formatDate(event.data);
       $("detailStage").textContent = labels[event.etapa] || event.etapa;
       $("detailStatus").textContent = labels[event.status] || event.status;
       $("detailLocation").textContent = event.local || "Não informado";
+      $("detailAssignees").textContent = assigneeNames(event.assignee_ids);
       $("detailText").innerHTML = richText(event.detalhes || "Sem detalhes adicionais.");
       $("detailLocationWrap").classList.toggle("hidden", !event.local);
+      $("detailAssigneesWrap").classList.toggle("hidden", !event.assignee_ids?.length);
       $("detailTextWrap").classList.toggle("hidden", !event.detalhes);
-      const eventFiles = files.filter(file => file.event_id === id);
+      const eventFiles = event.source === "event" ? files.filter(file => file.event_id === event.source_id) : [];
       const attachmentWrap = $("detailAttachments"); attachmentWrap.replaceChildren();
       eventFiles.forEach(file => {
         const row = document.createElement("div"); row.className = "attachment";
@@ -939,7 +1076,8 @@
 
     function openEventEditor(event = null, presetDate = "") {
       if (!user) { openModal("loginModal"); return; }
-      if (!event && !isAdmin && leaderGroupIds.size === 0) { toast("Seu e-mail ainda não está vinculado a um grupo.", true); return; }
+      if (event && event.source !== "event") { toast("Entregas e avisos são editados no portal.", true); return; }
+      if (!event && !isAdmin && leaderGroupIds.size === 0) { toast("Sua conta ainda não está vinculada a uma área que você possa editar.", true); return; }
       pendingUploads = []; removedExistingFiles = [];
       $("eventForm").reset(); $("eventId").value = event ? event.id : "";
       $("eventFormTitle").textContent = event ? "Editar atividade" : "Nova atividade";
@@ -949,6 +1087,7 @@
       $("eventType").value = event ? event.tipo : "tarefa"; $("eventStage").value = event ? event.etapa : "planejamento"; $("eventStatus").value = event ? event.status : "planejado";
       $("eventLocation").value = event ? (event.local || "") : ""; $("eventDetails").value = event ? (event.detalhes || "") : "";
       renderGroupChoices(); if (event) $("eventGroup").value = event.group_id;
+      renderAssigneeChoices(event ? event.assignee_ids : [user.id]);
       $("deleteEventBtn").classList.toggle("hidden", !event);
       renderPendingFiles(); renderExistingFiles(event ? event.id : undefined);
       openModal("eventModal");
@@ -1003,24 +1142,33 @@
     async function saveEvent(event) {
       event.preventDefault(); if (!client || !user) return;
       const button = $("saveEventBtn"); setBusy(button, true);
-      const id = $("eventId").value || randomId();
+      const existingId = $("eventId").value || null;
       const groupId = $("eventGroup").value;
-      const existingCount = files.filter(file => file.event_id === id && !removedExistingFiles.some(r => r.id === file.id)).length;
+      const existingCount = files.filter(file => file.event_id === existingId && !removedExistingFiles.some(r => r.id === file.id)).length;
       const validation = validatePendingFiles([], existingCount);
       if (validation) { toast(validation, true); setBusy(button, false); return; }
-      const payload = {
-        id, group_id: groupId, data: $("eventDate").value, data_fim: $("eventEndDate").value || null,
-        tipo: $("eventType").value, etapa: $("eventStage").value, status: $("eventStatus").value,
-        titulo: $("eventTitle").value.trim(), local: $("eventLocation").value.trim(), detalhes: $("eventDetails").value.trim(), updated_at: new Date().toISOString()
-      };
-      if (payload.data_fim && payload.data_fim < payload.data) { toast("A data final não pode ser anterior à inicial.", true); setBusy(button, false); return; }
-      if (!canEditGroup(groupId)) { toast("Você não tem permissão para alterar este grupo.", true); setBusy(button, false); return; }
-      const isNew = !$("eventId").value;
+      const assigneeIds = [...$("eventAssignees").querySelectorAll('input[type="checkbox"]:checked')].map(input => input.value);
+      if ($("eventEndDate").value && $("eventEndDate").value < $("eventDate").value) { toast("A data final não pode ser anterior à inicial.", true); setBusy(button, false); return; }
+      if (!canEditGroup(groupId)) { toast("Você não tem permissão para alterar esta área.", true); setBusy(button, false); return; }
       try {
-        const result = isNew ? await client.from("baja_events").insert(payload) : await client.from("baja_events").update(payload).eq("id", id);
-        if (result.error) throw result.error;
+        const { data, error } = await client.rpc("save_baja_event_with_assignees", {
+          target_event_id: existingId,
+          target_area_id: groupId,
+          event_start_date: $("eventDate").value,
+          event_end_date: $("eventEndDate").value || null,
+          event_type: $("eventType").value,
+          event_stage: $("eventStage").value,
+          event_status: $("eventStatus").value,
+          event_title: $("eventTitle").value.trim(),
+          event_location: $("eventLocation").value.trim(),
+          event_details: $("eventDetails").value.trim(),
+          assignee_ids: assigneeIds
+        });
+        if (error) throw error;
+        const savedId = data?.id;
+        if (!savedId) throw new Error("A atividade foi salva, mas o identificador não foi retornado.");
         await removeFiles(removedExistingFiles);
-        await uploadFiles(id);
+        await uploadFiles(savedId);
         closeModal("eventModal"); toast("Atividade salva com sucesso."); await loadAll(true);
       } catch (error) {
         toast(`Não foi possível salvar: ${error.message}`, true);
@@ -1040,38 +1188,100 @@
       finally { setBusy(button, false); }
     }
 
-    async function openGroupsManager() {
-      if (!isAdmin) return; await renderManageGroups(); resetGroupForm(); openModal("groupsModal");
+    function noteState(note) {
+      if (note.activity_state === "done") return { label: "Concluída", className: "" };
+      if (note.due_date && note.due_date < isoDate(new Date())) return { label: "Atrasada", className: "overdue" };
+      if (note.activity_state === "in_progress") return { label: "Em andamento", className: "" };
+      return { label: "Aberta", className: "" };
     }
 
-    async function renderManageGroups() {
-      const wrap = $("manageGroupList"); wrap.replaceChildren();
-      const { data: leaders } = await client.from("baja_group_leaders").select("group_id,email");
-      groups.forEach(group => {
-        const row = document.createElement("div"); row.className = "group-row";
-        const dot = document.createElement("span"); dot.className = "group-dot"; dot.style.setProperty("--group-color", group.cor);
-        const info = document.createElement("div"); const name = document.createElement("strong"); name.textContent = group.nome; const leader = document.createElement("small"); const leaderRecord = (leaders || []).find(item => item.group_id === group.id); leader.textContent = leaderRecord ? leaderRecord.email : "Sem líder definido"; info.append(name, leader);
-        const edit = document.createElement("button"); edit.className = "btn btn-light btn-small"; edit.type = "button"; edit.textContent = "Editar"; edit.addEventListener("click", () => { $("groupId").value = group.id; $("groupName").value = group.nome; $("groupColor").value = group.cor; $("groupDescription").value = group.descricao || ""; $("groupLeader").value = leader.textContent === "Sem líder definido" ? "" : leader.textContent; $("cancelGroupEdit").classList.remove("hidden"); $("groupName").focus(); });
-        row.append(dot, info, edit); wrap.append(row);
+    function renderNotes() {
+      const body = $("notesTableBody");
+      if (!body) return;
+      body.replaceChildren();
+      const priorityLabels = { low: "Baixo", medium: "Médio", critical: "Crítico" };
+      const dependencyLabels = { pending: "Pendente", waiting: "Aguardando algo" };
+      notes.forEach(note => {
+        const state = noteState(note);
+        const row = document.createElement("tr");
+        const description = document.createElement("td"); description.dataset.label = "Descrição";
+        const edit = document.createElement("button"); edit.type = "button"; edit.className = "note-title"; edit.textContent = note.description; edit.addEventListener("click", () => openNoteEditor(note)); description.append(edit);
+        const area = document.createElement("td"); area.dataset.label = "Área"; area.textContent = groups.find(group => group.id === note.area_id)?.nome || "Sem área";
+        const date = document.createElement("td"); date.dataset.label = "Data";
+        const dateValue = document.createElement("span"); dateValue.className = "note-date"; dateValue.textContent = formatDate(note.activity_date, { day: "2-digit", month: "short", year: "numeric" });
+        const stateBadge = document.createElement("span"); stateBadge.className = `note-state ${state.className}`.trim(); stateBadge.textContent = state.label; date.append(dateValue, stateBadge);
+        const due = document.createElement("td"); due.dataset.label = "Prazo"; due.textContent = note.due_date ? formatDate(note.due_date, { day: "2-digit", month: "short", year: "numeric" }) : "Sem prazo";
+        const priority = document.createElement("td"); priority.dataset.label = "Prioridade"; priority.className = `priority-${note.priority}`; priority.textContent = priorityLabels[note.priority] || note.priority;
+        const status = document.createElement("td"); status.dataset.label = "Status"; status.textContent = dependencyLabels[note.dependency_status] || note.dependency_status;
+        const observations = document.createElement("td"); observations.dataset.label = "Observações"; observations.textContent = note.observations || "—";
+        row.append(description, area, date, due, priority, status, observations); body.append(row);
       });
-      if (!groups.length) { const p = document.createElement("p"); p.className = "helper"; p.textContent = "Cadastre o primeiro grupo abaixo."; wrap.append(p); }
+      $("notesEmpty").classList.toggle("hidden", notes.length > 0);
     }
 
-    function resetGroupForm() { $("groupForm").reset(); $("groupId").value = ""; $("groupColor").value = "#0b4d85"; $("cancelGroupEdit").classList.add("hidden"); }
+    function openNoteEditor(note = null) {
+      if (!user || !hasTeamAccess) { openModal("loginModal"); return; }
+      $("noteForm").reset();
+      $("noteId").value = note ? note.id : "";
+      $("noteFormTitle").textContent = note ? "Editar anotação" : "Nova anotação";
+      $("noteDescription").value = note ? note.description : "";
+      renderGroupChoices();
+      $("noteArea").value = note?.area_id || groups.find(group => group.nome.localeCompare(profileArea || "", "pt-BR", { sensitivity: "base" }) === 0)?.id || groups[0]?.id || "";
+      $("noteActivityDate").value = note?.activity_date || isoDate(new Date());
+      $("noteDueDate").value = note?.due_date || note?.activity_date || isoDate(new Date());
+      $("notePriority").value = note?.priority || "medium";
+      $("noteActivityState").value = note?.activity_state || "open";
+      $("noteDependencyStatus").value = note?.dependency_status || "pending";
+      $("noteObservations").value = note?.observations || "";
+      $("deleteNoteBtn").classList.toggle("hidden", !note);
+      openModal("noteModal");
+    }
 
-    async function saveGroup(event) {
-      event.preventDefault(); if (!isAdmin) return;
-      const button = event.submitter; setBusy(button, true);
-      const id = $("groupId").value || randomId(); const leaderEmail = $("groupLeader").value.trim().toLowerCase();
-      const payload = { id, nome: $("groupName").value.trim(), descricao: $("groupDescription").value.trim(), cor: $("groupColor").value, updated_at: new Date().toISOString() };
+    async function saveNote(event) {
+      event.preventDefault();
+      if (!client || !user) return;
+      const button = $("saveNoteBtn"); setBusy(button, true);
+      const id = $("noteId").value;
+      const payload = {
+        user_id: user.id,
+        description: $("noteDescription").value.trim(),
+        area_id: $("noteArea").value || null,
+        activity_date: $("noteActivityDate").value,
+        due_date: $("noteDueDate").value || null,
+        priority: $("notePriority").value,
+        activity_state: $("noteActivityState").value,
+        dependency_status: $("noteDependencyStatus").value,
+        observations: $("noteObservations").value.trim() || null,
+        updated_at: new Date().toISOString()
+      };
+      if (payload.due_date && payload.due_date < payload.activity_date) { toast("O prazo não pode ser anterior à data da atividade.", true); setBusy(button, false); return; }
       try {
-        const result = $("groupId").value ? await client.from("baja_groups").update(payload).eq("id", id) : await client.from("baja_groups").insert(payload);
+        const result = id ? await client.from("personal_notes").update(payload).eq("id", id) : await client.from("personal_notes").insert(payload);
         if (result.error) throw result.error;
-        const { error: deleteError } = await client.from("baja_group_leaders").delete().eq("group_id", id); if (deleteError) throw deleteError;
-        if (leaderEmail) { const { error: leaderError } = await client.from("baja_group_leaders").insert({ group_id: id, email: leaderEmail }); if (leaderError) throw leaderError; }
-        toast("Grupo salvo com sucesso."); resetGroupForm(); await loadAll(true); await renderManageGroups();
-      } catch (error) { toast(`Não foi possível salvar o grupo: ${error.message}`, true); }
+        closeModal("noteModal"); toast("Anotação salva."); await loadAll(true);
+      } catch (error) { toast(`Não foi possível salvar: ${error.message}`, true); }
       finally { setBusy(button, false); }
+    }
+
+    async function deleteNote() {
+      const id = $("noteId").value;
+      const note = notes.find(item => item.id === id);
+      if (!note || !confirm(`Excluir a anotação “${note.description}”?`)) return;
+      const button = $("deleteNoteBtn"); setBusy(button, true, "Excluindo...");
+      try {
+        const { error } = await client.from("personal_notes").delete().eq("id", id);
+        if (error) throw error;
+        closeModal("noteModal"); toast("Anotação excluída."); await loadAll(true);
+      } catch (error) { toast(`Não foi possível excluir: ${error.message}`, true); }
+      finally { setBusy(button, false); }
+    }
+
+    function setSection(section) {
+      currentSection = section;
+      document.querySelectorAll("[data-section]").forEach(button => button.classList.toggle("active", button.dataset.section === section));
+      $("scheduleWorkspace").classList.toggle("hidden", section !== "schedule");
+      $("notesWorkspace").classList.toggle("hidden", section !== "notes");
+      updateAuthUI();
     }
 
     $("prevMonth").addEventListener("click", () => { currentMonth = clampMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)); renderCalendar(); renderAgenda(); });
@@ -1082,11 +1292,13 @@
     $("clearFilters").addEventListener("click", () => { $("searchInput").value = ""; $("groupFilter").value = ""; $("stageFilter").value = ""; $("statusFilter").value = ""; renderCalendar(); renderAgenda(); });
     $("newEventBtn").addEventListener("click", () => openEventEditor());
     $("refreshBtn").addEventListener("click", () => loadAll(false));
-    $("groupsBtn").addEventListener("click", openGroupsManager);
     $("eventForm").addEventListener("submit", saveEvent);
     $("deleteEventBtn").addEventListener("click", deleteEvent);
-    $("groupForm").addEventListener("submit", saveGroup);
-    $("cancelGroupEdit").addEventListener("click", resetGroupForm);
+    $("newNoteBtn").addEventListener("click", () => openNoteEditor());
+    $("notesAddBtn").addEventListener("click", () => openNoteEditor());
+    $("noteForm").addEventListener("submit", saveNote);
+    $("deleteNoteBtn").addEventListener("click", deleteNote);
+    document.querySelectorAll("[data-section]").forEach(button => button.addEventListener("click", () => setSection(button.dataset.section)));
     $("editFromDetailBtn").addEventListener("click", () => { const event = events.find(item => item.id === detailEventId); closeModal("detailModal"); if (event) openEventEditor(event); });
     $("eventFiles").addEventListener("change", event => { const chosen = [...event.target.files]; const existingCount = files.filter(file => file.event_id === $("eventId").value && !removedExistingFiles.some(r => r.id === file.id)).length; const error = validatePendingFiles(chosen, existingCount); if (error) toast(error, true); else pendingUploads.push(...chosen); event.target.value = ""; renderPendingFiles(); });
     $("loginBtn").addEventListener("click", async () => { if (user && client) { await client.auth.signOut(); toast("Você saiu do cronograma."); } else openModal("loginModal"); });
