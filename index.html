@@ -664,8 +664,8 @@
   <script>
     // ================================================================
     // CONEXÃO DO NOVO SUPABASE DO BAJA
-    // Cole aqui SOMENTE a URL e a chave publicável (publishable/anon).
-    // Nunca coloque a senha do banco, secret key ou service_role no GitHub.
+    // A chave abaixo é do tipo publicável e foi criada para uso no navegador.
+    // Senhas, secret keys e service_role nunca podem entrar neste arquivo.
     // ================================================================
     const SUPABASE_URL = "https://djkfwehxuyowgftjjpyu.supabase.co";
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_XI3i_6U5LWEvhidisOUd1w_s3mGa55u";
@@ -839,18 +839,46 @@
 
     async function importPortalSession() {
       const hash = new URLSearchParams(window.location.hash.slice(1));
-      const hasPortalTransfer = hash.has("portal_access_token") || hash.has("portal_refresh_token");
+      const hasPortalTransfer = hash.has("portal_code");
       if (!hasPortalTransfer) return;
 
-      const accessToken = hash.get("portal_access_token");
-      const refreshToken = hash.get("portal_refresh_token");
+      const code = hash.get("portal_code");
       window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
 
-      if (!accessToken || !refreshToken) {
+      if (!code || !/^[A-Za-z0-9_-]{43}$/.test(code)) {
         toast("Não foi possível reaproveitar o acesso do portal. Entre novamente.", true);
         return;
       }
 
+      let response;
+      try {
+        response = await fetch(`${SUPABASE_URL}/functions/v1/portal-session-transfer`, {
+          method: "POST",
+          mode: "cors",
+          credentials: "omit",
+          cache: "no-store",
+          referrerPolicy: "no-referrer",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_PUBLISHABLE_KEY
+          },
+          body: JSON.stringify({ action: "exchange", code })
+        });
+      } catch {
+        toast("A conexão segura com o portal falhou. Entre novamente.", true);
+        return;
+      }
+      if (!response.ok) {
+        toast("O acesso temporário expirou ou já foi usado. Entre novamente.", true);
+        return;
+      }
+      const transfer = await response.json();
+      const accessToken = typeof transfer.accessToken === "string" ? transfer.accessToken : "";
+      const refreshToken = typeof transfer.refreshToken === "string" ? transfer.refreshToken : "";
+      if (!accessToken || !refreshToken) {
+        toast("A resposta segura do portal foi inválida. Entre novamente.", true);
+        return;
+      }
       const { error } = await client.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken
