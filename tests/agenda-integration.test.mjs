@@ -12,8 +12,9 @@ test("loads the official project areas instead of the legacy groups", () => {
 
 test("combines calendar activities, deliveries and published notices", () => {
   assert.match(html, /from\("baja_events"\)/);
-  assert.match(html, /from\("milestones"\)/);
-  assert.match(html, /from\("announcements"\)/);
+  assert.match(html, /rpc\("list_schedule_milestones"\)/);
+  assert.match(html, /rpc\("list_schedule_announcements"\)/);
+  assert.match(html, /rpc\("list_schedule_milestone_assignees"\)/);
   assert.match(html, /source: "milestone"/);
   assert.match(html, /source: "announcement"/);
 });
@@ -25,16 +26,6 @@ test("saves calendar activities with multiple assignees", () => {
   assert.match(html, /Responsáveis/);
 });
 
-test("imports the portal session through a short-lived one-time code", () => {
-  assert.match(html, /portal-session-transfer/);
-  assert.match(html, /portal_code/);
-  assert.match(html, /history\.replaceState/);
-  assert.match(html, /credentials:\s*"omit"/);
-  assert.match(html, /cache:\s*"no-store"/);
-  assert.doesNotMatch(html, /portal_access_token/);
-  assert.doesNotMatch(html, /portal_refresh_token/);
-});
-
 test("provides the seven-column private notes table and CRUD", () => {
   for (const heading of ["Descrição", "Área", "Data", "Prazo", "Prioridade", "Status", "Observações"]) {
     assert.match(html, new RegExp(`<th>${heading}</th>`));
@@ -43,6 +34,17 @@ test("provides the seven-column private notes table and CRUD", () => {
   assert.match(html, /function saveNote/);
   assert.match(html, /function deleteNote/);
   assert.match(html, /somente você pode consultá-la/);
+});
+
+test("exchanges the portal's one-time code and always returns logout to the portal", () => {
+  assert.match(html, /hash\.get\("portal_code"\)/);
+  assert.match(html, /action:\s*"exchange"/);
+  assert.match(html, /portal-session-transfer/);
+  assert.match(html, /credentials:\s*"omit"/);
+  assert.match(html, /cache:\s*"no-store"/);
+  assert.doesNotMatch(html, /hash\.get\("portal_(?:access|refresh)_token"\)/);
+  assert.match(html, /signOut\(\{ scope: "local" \}\)/);
+  assert.match(html, /window\.location\.replace\(PORTAL_URL\)/);
 });
 
 test("keeps the embedded application JavaScript syntactically valid", () => {
