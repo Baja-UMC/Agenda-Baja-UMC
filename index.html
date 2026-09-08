@@ -669,6 +669,7 @@
     // ================================================================
     const SUPABASE_URL = "https://djkfwehxuyowgftjjpyu.supabase.co";
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_XI3i_6U5LWEvhidisOUd1w_s3mGa55u";
+    const PORTAL_URL = "https://baja-umc.miguelviolinista753.chatgpt.site/portal/";
 
     const START_DATE = new Date(2026, 7, 1);
     const END_DATE = new Date(2028, 11, 31);
@@ -786,10 +787,10 @@
         client.from("project_areas").select("id,name,description,sort_order").eq("is_active", true).order("sort_order").order("name"),
         client.from("baja_events").select("*").order("data").order("titulo"),
         client.from("baja_event_files").select("*").order("created_at"),
-        client.from("milestones").select("id,title,description,area_id,status,start_date,due_date,stage,location,priority").order("due_date").order("title"),
-        client.from("announcements").select("id,title,body,kind,is_published,area_id,calendar_date").eq("is_published", true).not("calendar_date", "is", null).order("calendar_date"),
+        client.rpc("list_schedule_milestones"),
+        client.rpc("list_schedule_announcements"),
         client.from("baja_event_assignees").select("event_id,user_id"),
-        client.from("milestone_assignees").select("milestone_id,user_id"),
+        client.rpc("list_schedule_milestone_assignees"),
         client.from("profiles").select("id,full_name,area,role").in("role", ["member", "leader", "admin"]).order("full_name"),
         client.from("personal_notes").select("*").order("due_date").order("created_at")
       ]);
@@ -839,13 +840,11 @@
 
     async function importPortalSession() {
       const hash = new URLSearchParams(window.location.hash.slice(1));
-      const hasPortalTransfer = hash.has("portal_code");
-      if (!hasPortalTransfer) return;
-
       const code = hash.get("portal_code");
+      if (!code) return;
       window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
 
-      if (!code || !/^[A-Za-z0-9_-]{43}$/.test(code)) {
+      if (!/^[A-Za-z0-9_-]{43}$/.test(code)) {
         toast("Não foi possível reaproveitar o acesso do portal. Entre novamente.", true);
         return;
       }
@@ -879,6 +878,7 @@
         toast("A resposta segura do portal foi inválida. Entre novamente.", true);
         return;
       }
+
       const { error } = await client.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken
@@ -1329,7 +1329,12 @@
     document.querySelectorAll("[data-section]").forEach(button => button.addEventListener("click", () => setSection(button.dataset.section)));
     $("editFromDetailBtn").addEventListener("click", () => { const event = events.find(item => item.id === detailEventId); closeModal("detailModal"); if (event) openEventEditor(event); });
     $("eventFiles").addEventListener("change", event => { const chosen = [...event.target.files]; const existingCount = files.filter(file => file.event_id === $("eventId").value && !removedExistingFiles.some(r => r.id === file.id)).length; const error = validatePendingFiles(chosen, existingCount); if (error) toast(error, true); else pendingUploads.push(...chosen); event.target.value = ""; renderPendingFiles(); });
-    $("loginBtn").addEventListener("click", async () => { if (user && client) { await client.auth.signOut(); toast("Você saiu do cronograma."); } else openModal("loginModal"); });
+    $("loginBtn").addEventListener("click", async () => {
+      if (user && client) {
+        await client.auth.signOut({ scope: "local" });
+        window.location.replace(PORTAL_URL);
+      } else openModal("loginModal");
+    });
     $("accessLoginBtn").addEventListener("click", async () => { if (user && client) await client.auth.signOut(); openModal("loginModal"); });
     $("loginForm").addEventListener("submit", async event => { event.preventDefault(); if (!client) { toast("Primeiro conecte o Supabase no final do arquivo.", true); return; } const button = event.submitter; setBusy(button, true, "Entrando..."); const { error } = await client.auth.signInWithPassword({ email: $("loginEmail").value.trim(), password: $("loginPassword").value }); setBusy(button, false); if (error) toast("E-mail ou senha inválidos.", true); else { closeModal("loginModal"); $("loginForm").reset(); toast("Acesso liberado."); } });
     document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => closeModal(button.dataset.close)));
